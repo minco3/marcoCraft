@@ -10,7 +10,7 @@ file(GLOB_RECURSE SOURCE_FILES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} CONFIGURE_DE
 add_executable(minecraft main.cpp ${SOURCE_FILES})
 find_package(GTest)
 find_package(GLEW)
-find_package(GLUT)
+find_package(freeglut)
 find_package(SDL2)
 
 # message(STATUS ${SFML_LIBRARIES})
@@ -19,13 +19,12 @@ include_directories(${SFML_INCLUDE_DIR})
 target_link_libraries(minecraft gtest)
 target_link_libraries(minecraft sdl2)
 target_link_libraries(minecraft opengl32)
-
 target_link_libraries(minecraft glu32)
+target_link_libraries(minecraft glew32)
 
 # target_link_libraries(minecraft freeglut)
 # target_link_libraries(minecraft sdl2main)
 # target_link_libraries(minecraft mingw32)
-# target_link_libraries(minecraft glew32)
 
 set(CPACK_PROJECT_NAME ${PROJECT_NAME})
 set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})
