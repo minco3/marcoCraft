@@ -14,16 +14,16 @@ void Camera::move(float deltaTime) {
     if (up) cameraVelocity.y += 1.0f; 
     if (down) cameraVelocity.y += -1.0f;
 
-    
+    if (sprint) cameraVelocity *= glm::vec3(2.0f, 2.0f, 2.0f);
 
     cameraPos += cameraVelocity*glm::vec3(deltaTime,deltaTime,deltaTime);
 }
 
 void Camera::look(Sint32 xrel, Sint32 yrel) {
     cameraFront = glm::normalize(
-        glm::vec3(cameraFront.x*cos(xrel/(float)200)-cameraFront.z*sin(xrel/(float)200),
-                  cameraFront.y-yrel/(float)200,
-                  cameraFront.x*sin(xrel/(float)200)+cameraFront.z*cos(xrel/(float)200))
+        glm::vec3(cameraFront.x*cos(xrel/sensitivity)-cameraFront.z*sin(xrel/sensitivity),
+                  cameraFront.y-yrel/sensitivity,
+                  cameraFront.x*sin(xrel/sensitivity)+cameraFront.z*cos(xrel/sensitivity))
     );
 }
 

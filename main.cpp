@@ -9,16 +9,12 @@
 #include <GL/glu.h>
 #include <glm/gtc/matrix_transform.hpp>
 
-#include "includes/utils/a.h"
+#include "includes/shader/shaderLoader.h"
 #include "includes/camera/camera.h"
-
-GLuint loadShaders(const char * vertex_file_path,const char * fragment_file_path);
 
 int main(int argc, char** argv) {
 
     const int width = 1000, height = 1000;
-
-    double sensitivity = 2.5;
 
     bool mouseVisible = true, lastMouseVisible = true;
 
@@ -179,59 +175,53 @@ int main(int argc, char** argv) {
             case SDL_KEYDOWN:
                 switch(event.key.keysym.sym) {
                 case SDLK_w:
-                    std::cout << "w\n";
                     camera.forward = true;
                     break;
                 case SDLK_d:
-                    std::cout << "d\n";
                     camera.right = true;
                     break;
                 case SDLK_s:
-                    std::cout << "s\n";                                                                                                                                                                                                             
                     camera.back = true;
                     break;
                 case SDLK_a:
-                    std::cout << "a\n";
                     camera.left = true;
                     break;
                 case SDLK_SPACE:
-                    std::cout << "space\n";
                     camera.up = true;
                     break;
-                case SDLK_LSHIFT:
-                    std::cout << "c\n";
+                case SDLK_c:
                     camera.down = true;
+                    break;
+                case SDLK_LSHIFT:
+                    camera.sprint = true;
+                    break;
+                case SDLK_LALT:
+                    mouseVisible = !mouseVisible;
                     break;
                 }
             break;
             case SDL_KEYUP:
                 switch(event.key.keysym.sym) {
                 case SDLK_w:
-                    std::cout << "w\n";
                     camera.forward = false;
                     break;
                 case SDLK_d:
-                    std::cout << "d\n";
                     camera.right = false;
                     break;
                 case SDLK_s:
-                    std::cout << "s\n";                                                                                                                                                                                                             
                     camera.back = false;
                     break;
                 case SDLK_a:
-                    std::cout << "a\n";
                     camera.left = false;
                     break;
                 case SDLK_SPACE:
-                    std::cout << "space\n";
                     camera.up = false;
                     break;
-                case SDLK_LSHIFT:
-                    std::cout << "c\n";
+                case SDLK_c:
                     camera.down = false;
                     break;
-                case SDLK_LALT:
-                    mouseVisible = !mouseVisible;
+                case SDLK_LSHIFT:
+                    camera.sprint = false;
                     break;
                 }
                 break;
@@ -261,7 +251,6 @@ int main(int argc, char** argv) {
             (void*)0
         );
         glDrawArrays(GL_TRIANGLES, 0, 12*3);
-        SDL_GL_SwapWindow(window);
         glDisableVertexAttribArray(0);
 
         glEnableVertexAttribArray(1);
@@ -275,6 +264,7 @@ int main(int argc, char** argv) {
             (void*)0
         );
         
+        SDL_GL_SwapWindow(window);
     }
 
 
@@ -285,83 +275,3 @@ int main(int argc, char** argv) {
     return 0;
 }
 
-GLuint loadShaders(const char * vertex_file_path,const char * fragment_file_path) {
-    GLuint VertexShaderID = glCreateShader(GL_VERTEX_SHADER);
-    GLuint FragmentShaderID = glCreateShader(GL_FRAGMENT_SHADER);
-
-    std::string VertexShaderCode;
-    std::ifstream VertexShaderStream(vertex_file_path, std::ios::in);
-    if(VertexShaderStream.is_open()) {
-        std::stringstream sstr;
-        sstr << VertexShaderStream.rdbuf();
-        VertexShaderCode = sstr.str();
-        VertexShaderStream.close();
-    } else {
-        std::cout << "error opening " << vertex_file_path << std::endl;
-        return -1;
-    }
-
-    std::string FragmentShaderCode;
-    std::ifstream FragmentShaderStream(fragment_file_path, std::ios::in);
-    if(FragmentShaderStream.is_open()) {
-        std::stringstream sstr;
-        sstr << FragmentShaderStream.rdbuf();
-        FragmentShaderCode = sstr.str();
-        FragmentShaderStream.close();
-    } else {
-        std::cout << "error opening " << fragment_file_path << std::endl;
-        return -1;
-    }
-
-    GLint result = GL_FALSE;
-    int InfoLogLength;
-
-    std::cout << "Compiling Shader : " << vertex_file_path << std::endl;
-    char const * VertexSourcePointer = VertexShaderCode.c_str();
-    glShaderSource(VertexShaderID, 1, &VertexSourcePointer, NULL);
-    glCompileShader(VertexShaderID);
-
-    glGetShaderiv(VertexShaderID, GL_COMPILE_STATUS, &result);
-    glGetShaderiv(VertexShaderID, GL_INFO_LOG_LENGTH, &InfoLogLength);
-    if (InfoLogLength > 0) {
-        std::vector<char> VertexShaderErrorMessage(InfoLogLength+1);
-        glGetShaderInfoLog(VertexShaderID, InfoLogLength, NULL, &VertexShaderErrorMessage[0]);
-        std::cout << &VertexShaderErrorMessage[0] << '\n';
-    }
-
-    std::cout << "Compiling Shader : " << fragment_file_path << std::endl;
-    char const * FragmentSourcePointer = FragmentShaderCode.c_str();
-    glShaderSource(FragmentShaderID, 1, &FragmentSourcePointer, NULL);
-    glCompileShader(FragmentShaderID);
-
-    glGetShaderiv(FragmentShaderID, GL_COMPILE_STATUS, &result);
-    glGetShaderiv(FragmentShaderID, GL_INFO_LOG_LENGTH, &InfoLogLength);
-    if (InfoLogLength > 0) {
-        std::vector<char> FragmentShaderErrorMessage(InfoLogLength+1);
-        glGetShaderInfoLog(FragmentShaderID, InfoLogLength, NULL, &FragmentShaderErrorMessage[0]);
-        std::cout << &FragmentShaderErrorMessage[0] << '\n';
-    }
-
-    std::cout << "Linking program\n";
-    GLuint ProgramID = glCreateProgram();
-    glAttachShader(ProgramID, VertexShaderID);
-    glAttachShader(ProgramID, FragmentShaderID);
-    glLinkProgram(ProgramID);
-
-    glGetProgramiv(ProgramID, GL_LINK_STATUS, &result);
-    glGetProgramiv(ProgramID, GL_INFO_LOG_LENGTH, &InfoLogLength);
-    if (InfoLogLength > 0) {
-            std::vector<char> ProgramErrorMessage(InfoLogLength+1);
-        glGetShaderInfoLog(ProgramID, InfoLogLength, NULL, &ProgramErrorMessage[0]);
-        std::cout << &ProgramErrorMessage[0] << '\n';
-    }
-
-    glDetachShader(ProgramID, VertexShaderID);
-    glDetachShader(ProgramID, FragmentShaderID);
-
-    glDeleteShader(VertexShaderID);
-    glDeleteShader(FragmentShaderID);
-
-    return ProgramID;
-
-}
