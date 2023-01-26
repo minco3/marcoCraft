@@ -263,8 +263,8 @@ int main(int argc, char** argv) {
             0,
             (void*)0
         );
-        
         SDL_GL_SwapWindow(window);
+        
     }
 
 

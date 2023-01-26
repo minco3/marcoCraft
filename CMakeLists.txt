@@ -13,14 +13,16 @@ find_package(GLEW)
 find_package(freeglut)
 find_package(SDL2)
 
-# message(STATUS ${SFML_LIBRARIES})
+include_directories("C:/msys64/mingw64/include/freetype2")
+add_subdirectory("/freetype2")
+message(STATUS ${INCLUDE_DIRECTORIES})
 
-include_directories(${SFML_INCLUDE_DIR})
 target_link_libraries(minecraft gtest)
 target_link_libraries(minecraft sdl2)
 target_link_libraries(minecraft opengl32)
 target_link_libraries(minecraft glu32)
 target_link_libraries(minecraft glew32)
+target_link_libraries(minecraft graphite2)
 
 # target_link_libraries(minecraft freeglut)
 # target_link_libraries(minecraft sdl2main)
