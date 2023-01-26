@@ -20,7 +20,7 @@ int main(int argc, char** argv) {
 
     double sensitivity = 2.5;
 
-    bool mouseVisible = true;
+    bool mouseVisible = true, lastMouseVisible = true;
 
     SDL_Init(SDL_INIT_VIDEO);
 
@@ -167,6 +167,13 @@ int main(int argc, char** argv) {
                 switch(event.window.event) {
                 case SDL_WINDOWEVENT_CLOSE:
                     running = false;
+                    break;
+                case SDL_WINDOWEVENT_ENTER:
+                    mouseVisible = false;
+                    break;
+                case SDL_WINDOWEVENT_LEAVE:
+                    mouseVisible = true;
+                    break;
                 }
             break;
             case SDL_KEYDOWN:
@@ -225,7 +232,6 @@ int main(int argc, char** argv) {
                     break;
                 case SDLK_LALT:
                     mouseVisible = !mouseVisible;
-                    SDL_SetRelativeMouseMode(mouseVisible ?  SDL_FALSE : SDL_TRUE);             
                     break;
                 }
                 break;
@@ -235,6 +241,11 @@ int main(int argc, char** argv) {
                 }
                 break;
             }
+        }
+
+        if (lastMouseVisible != mouseVisible) {
+            SDL_SetRelativeMouseMode(mouseVisible ?  SDL_FALSE : SDL_TRUE);
+            lastMouseVisible = mouseVisible;             
         }
 
         camera.move(deltaTime);
