@@ -12,11 +12,12 @@ find_package(GTest)
 find_package(GLEW)
 find_package(freeglut)
 find_package(SDL2)
+find_package(freetype)
 
 include_directories("C:/msys64/mingw64/include/freetype2")
-add_subdirectory("/freetype2")
 message(STATUS ${INCLUDE_DIRECTORIES})
 
+target_link_libraries(minecraft freetype)
 target_link_libraries(minecraft gtest)
 target_link_libraries(minecraft sdl2)
 target_link_libraries(minecraft opengl32)
