@@ -27,6 +27,7 @@ int main(int argc, char** argv) {
     SDL_Init(SDL_INIT_VIDEO);
 
     SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 4);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
 
     SDL_Window* window = SDL_CreateWindow("Test", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, width, height, SDL_WINDOW_SHOWN | SDL_WINDOW_OPENGL);
     SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, 0);
@@ -78,53 +79,47 @@ int main(int argc, char** argv) {
         { -1.0f, 1.0f, 1.0f,    0.820f,  0.883f,  0.371f },
         { 1.0f,-1.0f, 1.0f,     0.982f,  0.099f,  0.879f }
     };
-
-
     
-    GLuint VertexArrayID;
-    glGenVertexArrays(1, &VertexArrayID);
-    glBindVertexArray(VertexArrayID);
+    GLuint VAO;
+    glGenVertexArrays(1, &VAO);
+    glBindVertexArray(VAO);
 
-    GLuint vertexbuffer;
-    glGenBuffers(1, &vertexbuffer);
-    glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
+    GLuint VBO;
+    glGenBuffers(1, &VBO);
+    glBindBuffer(GL_ARRAY_BUFFER, VBO);
     glBufferData(GL_ARRAY_BUFFER, sizeof(g_vertex_buffer_data), g_vertex_buffer_data, GL_STATIC_DRAW);
 
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(
+        0,
+        3,
+        GL_FLOAT,
+        GL_FALSE,
+        sizeof(float)*6,
+        (void*)0
+    );
 
-        glVertexAttribPointer(
-            0,
-            3,
-            GL_FLOAT,
-            GL_FALSE,
-            sizeof(float)*3,
-            (void*)0
-        );
-        glBindBuffer(GL_ARRAY_BUFFER, 0);
-        glEnableVertexAttribArray(0);
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(
+        1,
+        3,
+        GL_FLOAT,
+        GL_FALSE,
+        sizeof(float)*6,
+        (void*)(sizeof(float)*3)
+    );
 
-        glVertexAttribPointer(
-            1,
-            3,
-            GL_FLOAT,
-            GL_FALSE,
-            sizeof(float)*3,
-            (void*)(sizeof(float)*3)
-        );
-        glEnableVertexAttribArray(1);
 
     glm::mat4 Projection = glm::perspective(glm::radians(45.0f), (float)width / (float)height, 0.1f, 100.0f);
 
-
-    GLuint textbuffer, textVertexArrayID;
-    glGenVertexArrays(1, &textVertexArrayID);
-    glGenBuffers(1, &textbuffer);
-    glBindVertexArray(textVertexArrayID);
-    glBindBuffer(GL_ARRAY_BUFFER, textbuffer);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 6 * 4, NULL, GL_DYNAMIC_DRAW);  
+    // GLuint textbuffer, textVertexArrayID;
+    // glGenVertexArrays(1, &textVertexArrayID);
+    // glGenBuffers(1, &textbuffer);
+    // glBindVertexArray(textVertexArrayID);
+    // glBindBuffer(GL_ARRAY_BUFFER, textbuffer);
+    // glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 6 * 4, NULL, GL_DYNAMIC_DRAW);  
 
     // glm::mat4 textProjection = glm::ortho(0.0f, 800.0f, 0.0f, 600.0f);
-
-
 
     glClearColor(0.0f, 0.0f, 0.4f, 0.0f);
 
@@ -239,7 +234,7 @@ int main(int argc, char** argv) {
 
         glUseProgram(shaderID);
 
-        glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
+        glBindVertexArray(VAO);
 
         glDrawArrays(GL_TRIANGLES, 0, 12*3);
 
