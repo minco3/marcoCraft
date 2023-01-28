@@ -108,25 +108,30 @@ int main(int argc, char** argv) {
         sizeof(float)*6,
         (void*)(sizeof(float)*3)
     );
-
+    glBindVertexArray(0);
 
     glm::mat4 Projection = glm::perspective(glm::radians(45.0f), (float)width / (float)height, 0.1f, 100.0f);
+    glm::mat4 textProjection = glm::ortho(0.0f, 800.0f, 0.0f, 600.0f);
 
-    // GLuint textbuffer, textVertexArrayID;
-    // glGenVertexArrays(1, &textVertexArrayID);
-    // glGenBuffers(1, &textbuffer);
-    // glBindVertexArray(textVertexArrayID);
-    // glBindBuffer(GL_ARRAY_BUFFER, textbuffer);
-    // glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 6 * 4, NULL, GL_DYNAMIC_DRAW);  
 
-    // glm::mat4 textProjection = glm::ortho(0.0f, 800.0f, 0.0f, 600.0f);
+    GLuint textbuffer, textVertexArrayID;
+    glGenVertexArrays(1, &textVertexArrayID);
+    glGenBuffers(1, &textbuffer);
+    glBindVertexArray(textVertexArrayID);
+    glBindBuffer(GL_ARRAY_BUFFER, textbuffer);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 6 * 4, NULL, GL_DYNAMIC_DRAW);  
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(float), 0);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindVertexArray(0);
+
 
     glClearColor(0.0f, 0.0f, 0.4f, 0.0f);
 
-    GLuint shaderID = loadShaders("../SimpleVertexShader.glsl", "../SimpleFragmentShader.glsl");
+    GLuint shaderID = loadShaders("../SimpleShader.glsl");
     GLuint MatrixID = glGetUniformLocation(shaderID, "MVP");
 
-    GLuint textShaderID = loadShaders("../textVertexShader.glsl", "../textFragmentShader.glsl");
+    GLuint textShaderID = loadShaders("../TextShader.glsl");
 
     SDL_Event event;
     bool running = true;
@@ -235,22 +240,10 @@ int main(int argc, char** argv) {
         glUseProgram(shaderID);
 
         glBindVertexArray(VAO);
-
         glDrawArrays(GL_TRIANGLES, 0, 12*3);
+        glBindVertexArray(0);
 
-        // glEnableVertexAttribArray(2);
-        // glVertexAttribPointer(
-        //     0,
-        //     4,
-        //     GL_FLOAT,
-        //     GL_FALSE,
-        //     4 * sizeof(float),
-        //     0
-        // );
-        // glBindBuffer(GL_ARRAY_BUFFER, 0);
-        // glBindVertexArray(0);
-
-        // RenderText(textShaderID, textbuffer, textShaderID, characters, "hello world", 25.0f, 25.0f, 1.0f, glm::vec3(1.0f, 1.0f, 1.0f));
+        // RenderText(textShaderID, textbuffer, textVertexArrayID, characters, "hello world", 25.0f, 25.0f, 1.0f, glm::vec3(1.0f, 1.0f, 1.0f));
 
         SDL_GL_SwapWindow(window);
         
