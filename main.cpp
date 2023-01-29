@@ -18,8 +18,6 @@ int main(int argc, char** argv) {
 
     std::map<char, Character> characters;
 
-    loadFont("../includes/font/arial.ttf", 40, characters);
-
     const int width = 1000, height = 1000;
 
     bool mouseVisible = true, lastMouseVisible = true;
@@ -37,9 +35,15 @@ int main(int argc, char** argv) {
 
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_CULL_FACE);
-
     glDepthFunc(GL_LESS);
-    // glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glEnable(GL_BLEND);
+
+    GLuint shaderID = loadShaders("../SimpleShader.glsl");
+    GLuint MatrixID = glGetUniformLocation(shaderID, "MVP");
+
+    GLuint textShaderID = loadShaders("../TextShader.glsl");
+
+    loadFont("../includes/font/arial.ttf", 48, characters);
 
     static const GLfloat g_vertex_buffer_data[36][6] = {
         { -1.0f,-1.0f,-1.0f,    0.583f,  0.771f,  0.014f },
@@ -108,11 +112,10 @@ int main(int argc, char** argv) {
         sizeof(float)*6,
         (void*)(sizeof(float)*3)
     );
+
     glBindVertexArray(0);
 
     glm::mat4 Projection = glm::perspective(glm::radians(45.0f), (float)width / (float)height, 0.1f, 100.0f);
-    glm::mat4 textProjection = glm::ortho(0.0f, 800.0f, 0.0f, 600.0f);
-
 
     GLuint textbuffer, textVertexArrayID;
     glGenVertexArrays(1, &textVertexArrayID);
@@ -122,34 +125,24 @@ int main(int argc, char** argv) {
     glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 6 * 4, NULL, GL_DYNAMIC_DRAW);  
     glEnableVertexAttribArray(0);
     glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(float), 0);
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
 
 
     glClearColor(0.0f, 0.0f, 0.4f, 0.0f);
 
-    GLuint shaderID = loadShaders("../SimpleShader.glsl");
-    GLuint MatrixID = glGetUniformLocation(shaderID, "MVP");
-
-    GLuint textShaderID = loadShaders("../TextShader.glsl");
 
     SDL_Event event;
-    bool running = true;
+    bool running = true, debug_fps = false;
 
-    double lastTime = SDL_GetTicks64()/(double)1000, currentTime = lastTime;
+    double lastTime = SDL_GetTicks64(), currentTime = lastTime;
 
     Camera camera;
 
     while (running) {
         lastTime = currentTime;
-        currentTime = SDL_GetTicks64()/(double)1000;
+        currentTime = SDL_GetTicks64();
         float deltaTime = float(currentTime - lastTime);
         glm::vec3 cameraVelocity;
-        
-        glm::mat4 View = camera.getView();
-        glm::mat4 Model = glm::mat4(1.0f);
-        glm::mat4 mvp = Projection * View * Model;
-        glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &mvp[0][0]);
 
         //process all events
         while (SDL_PollEvent(&event)) {
@@ -192,6 +185,9 @@ int main(int argc, char** argv) {
                     break;
                 case SDLK_LALT:
                     mouseVisible = !mouseVisible;
+                    break;
+                case SDLK_F3:
+                    debug_fps = !debug_fps;
                     break;
                 }
             break;
@@ -239,14 +235,19 @@ int main(int argc, char** argv) {
 
         glUseProgram(shaderID);
 
+        glm::mat4 View = camera.getView();
+        glm::mat4 Model = glm::mat4(1.0f);
+        glm::mat4 mvp = Projection * View * Model;
+        glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &mvp[0][0]);
+
         glBindVertexArray(VAO);
         glDrawArrays(GL_TRIANGLES, 0, 12*3);
         glBindVertexArray(0);
-
-        // RenderText(textShaderID, textbuffer, textVertexArrayID, characters, "hello world", 25.0f, 25.0f, 1.0f, glm::vec3(1.0f, 1.0f, 1.0f));
-
-        SDL_GL_SwapWindow(window);
+        if (debug_fps) {
+            RenderText(textShaderID, textbuffer, textVertexArrayID, characters, std::string("fps: ") + std::to_string(1000/deltaTime), 25.0f, 25.0f, 1.0f, glm::vec3(1.0f, 1.0f, 1.0f));
+        }
         
+        SDL_GL_SwapWindow(window);
     }
 
 

@@ -29,13 +29,14 @@ int loadFont(const char * path, int size, std::map<char, Character>& characters)
 
     FT_Set_Pixel_Sizes(face, 0, 48);
 
-    for (unsigned char c=0; c<128; c++)
+    for (unsigned char c=32; c<128; c++)
     {
         if (FT_Load_Char(face, c, FT_LOAD_RENDER)) {
             std::cout << "Failed to load Glyph " << char(c) << std::endl;
             continue;
         }
         unsigned int texture;
+        glPixelStorei(GL_UNPACK_ALIGNMENT, 1);   
         glGenTextures(1, &texture);
         glBindTexture(GL_TEXTURE_2D, texture);
         glTexImage2D(
@@ -69,21 +70,25 @@ int loadFont(const char * path, int size, std::map<char, Character>& characters)
     FT_Done_Face(face);
     FT_Done_FreeType(ft);
 
+    glBindTexture(GL_TEXTURE_2D, 0);
     return 0;
 }
 
 void RenderText(GLuint textShaderID, GLuint textBufferID, GLuint textVertexArrayID, std::map<char, Character>& characters, std::string text, float x, float y, float scale, glm::vec3 color) {
-    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glUseProgram(textShaderID);
-    glUniform3f(glGetUniformLocation(textShaderID, "textColor"), color.r, color.g, color.b);
-    glActiveTexture(GL_TEXTURE0);
     glBindVertexArray(textVertexArrayID);
+    glUniform3f(glGetUniformLocation(textShaderID, "textColor"), color.r, color.g, color.b);
+    glm::mat4 projection = glm::ortho(0.0f, 800.0f, 0.0f, 600.0f);
+    glUniformMatrix4fv(glGetUniformLocation(textShaderID, "projection"), 1, GL_FALSE, &projection[0][0]);
+    glActiveTexture(GL_TEXTURE0);
+    glUniform1i(glGetUniformLocation(textShaderID, "text"), 0);
 
     for (char c : text) {
         Character ch = characters[c];
 
-        float xpos = x + ch.Bearing.x * scale;
-        float ypos = y + (ch.Size.y - ch.Bearing.y) * scale;
+        float xpos = x + ch.Bearing.x;
+        float ypos = y - (ch.Size.y - ch.Bearing.y);
 
         float w = ch.Size.x * scale;
         float h = ch.Size.y * scale;
@@ -100,16 +105,13 @@ void RenderText(GLuint textShaderID, GLuint textBufferID, GLuint textVertexArray
 
         glBindTexture(GL_TEXTURE_2D, ch.TextureID);
 
-        glBindBuffer(GL_ARRAY_BUFFER, textBufferID);
         glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(float) * 6 * 4, vertices);
-        glBindBuffer(GL_ARRAY_BUFFER, 0);
 
         glDrawArrays(GL_TRIANGLES, 0, 6);
         x += (ch.Advance >> 6) * scale; // bitshift by 6 to get value in pixels (2^6 = 64)
-
     }
 
     glBindVertexArray(0);
     glBindTexture(GL_TEXTURE_2D, 0);
-    glDisable(GL_BLEND);
+    glBlendFunc(GL_ONE, GL_ZERO);
 }

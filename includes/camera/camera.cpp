@@ -16,7 +16,7 @@ void Camera::move(float deltaTime) {
 
     if (sprint) cameraVelocity *= glm::vec3(2.0f, 2.0f, 2.0f);
 
-    cameraPos += cameraVelocity*glm::vec3(deltaTime,deltaTime,deltaTime);
+    cameraPos += cameraVelocity*glm::vec3(deltaTime/1000,deltaTime/1000,deltaTime/1000);
 }
 
 void Camera::look(Sint32 xrel, Sint32 yrel) {
