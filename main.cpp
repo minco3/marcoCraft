@@ -5,6 +5,7 @@
 #include <vector>
 #include <fstream>
 #include <sstream>
+#include <chrono>
 #include <GL/glew.h>
 #include <GL/glu.h>
 #include <glm/glm.hpp>
@@ -172,7 +173,12 @@ int main(int argc, char** argv) {
 
     Camera camera;
 
+    std::chrono::high_resolution_clock::time_point p1, p2;
+
     while (running) {
+        p2 = p1;
+        p1 = std::chrono::high_resolution_clock::now();
+        std::chrono::duration<double> duration = std::chrono::duration_cast<std::chrono::duration<double>> (p1-p2);
         lastTime = currentTime;
         currentTime = SDL_GetTicks64();
         float deltaTime = float(currentTime - lastTime);
@@ -278,7 +284,7 @@ int main(int argc, char** argv) {
         glDrawElements(GL_TRIANGLES, 12*3, GL_UNSIGNED_INT, 0);
         glBindVertexArray(0);
         if (debug_fps) {
-            RenderText(textShaderID, textbuffer, textVertexArrayID, characters, std::string("fps: ") + std::to_string(1000/deltaTime), 25.0f, 25.0f, 1.0f, glm::vec3(1.0f, 1.0f, 1.0f));
+            RenderText(textShaderID, textbuffer, textVertexArrayID, characters, std::string("fps: ") + std::to_string(1/duration.count()), 25.0f, 25.0f, 1.0f, glm::vec3(1.0f, 1.0f, 1.0f));
         }
         
         SDL_GL_SwapWindow(window);
