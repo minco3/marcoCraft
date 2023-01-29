@@ -1,8 +1,9 @@
 #define SDL_MAIN_HANDLED
 
 #include <SDL2/SDL.h>
-#include <iostream>
 #include <vector>
+#include <iostream>
+#include <iomanip>
 #include <fstream>
 #include <sstream>
 #include <chrono>
@@ -169,16 +170,17 @@ int main(int argc, char** argv) {
     SDL_Event event;
     bool running = true, debug_fps = false;
 
+    int fpsProfileFrame;
+    std::stringstream fpsCount;
+
     double lastTime = SDL_GetTicks64(), currentTime = lastTime;
 
     Camera camera;
 
     std::chrono::high_resolution_clock::time_point p1, p2;
+    std::chrono::duration<double> duration;
 
     while (running) {
-        p2 = p1;
-        p1 = std::chrono::high_resolution_clock::now();
-        std::chrono::duration<double> duration = std::chrono::duration_cast<std::chrono::duration<double>> (p1-p2);
         lastTime = currentTime;
         currentTime = SDL_GetTicks64();
         float deltaTime = float(currentTime - lastTime);
@@ -284,8 +286,20 @@ int main(int argc, char** argv) {
         glDrawElements(GL_TRIANGLES, 12*3, GL_UNSIGNED_INT, 0);
         glBindVertexArray(0);
         if (debug_fps) {
-            RenderText(textShaderID, textbuffer, textVertexArrayID, characters, std::string("fps: ") + std::to_string(1/duration.count()), 25.0f, 25.0f, 1.0f, glm::vec3(1.0f, 1.0f, 1.0f));
+            if (fpsProfileFrame % 128 == 0) {
+                fpsProfileFrame = 1;
+                p1 = std::chrono::high_resolution_clock::now();
+                std::chrono::duration<double> duration = std::chrono::duration_cast<std::chrono::duration<double>> (p1-p2);
+                fpsCount.clear();
+                fpsCount.str(std::string());
+                fpsCount << std::fixed << std::setprecision(1) << 1/duration.count();
+            } else {
+                fpsProfileFrame++;
+            }
+            RenderText(textShaderID, textbuffer, textVertexArrayID, characters, std::string("fps: ") + fpsCount.str(), 25.0f, 25.0f, 1.0f, glm::vec3(1.0f, 1.0f, 1.0f));
         }
+        p2 = std::chrono::high_resolution_clock::now();
+
         
         SDL_GL_SwapWindow(window);
     }
