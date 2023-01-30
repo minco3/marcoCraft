@@ -15,13 +15,14 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include "includes/textures/stb_image.h"
 
+#include "includes/opengl/renderer.h"
+#include "includes/opengl/VertexBuffer.h"
+#include "includes/opengl/IndexBuffer.h"
 #include "includes/shader/shaderLoader.h"
 #include "includes/camera/camera.h"
-#include "includes/font/text.h"
+#include "includes/text/Text.h"
 
 int main(int argc, char** argv) {
-
-    std::map<char, Character> characters;
 
     const int width = 1000, height = 1000;
 
@@ -48,7 +49,7 @@ int main(int argc, char** argv) {
 
     GLuint textShaderID = loadShaders("../TextShader.glsl");
 
-    loadFont("../includes/font/arial.ttf", 48, characters);
+    // loadFont("../includes/text/arial.ttf", 48, characters);
 
     static const GLfloat g_vertex_buffer_data[36][6] = {
         { -1.0f,-1.0f,-1.0f,    0.583f,  0.771f,  0.014f }, //0
@@ -153,22 +154,29 @@ int main(int argc, char** argv) {
 
     glm::mat4 Projection = glm::perspective(glm::radians(45.0f), (float)width / (float)height, 0.1f, 100.0f);
 
-    GLuint textbuffer, textVertexArrayID;
+    static const unsigned int textindices[6] = {
+        0,1,2,
+        0,2,3
+    };
+
+    GLuint textbuffer, textVertexArrayID, textIndexBuffer;
     glGenVertexArrays(1, &textVertexArrayID);
     glGenBuffers(1, &textbuffer);
+    glGenBuffers(1, &textIndexBuffer);
     glBindVertexArray(textVertexArrayID);
     glBindBuffer(GL_ARRAY_BUFFER, textbuffer);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 6 * 4, NULL, GL_DYNAMIC_DRAW);  
+    glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 4 * 4, NULL, GL_DYNAMIC_DRAW);  
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, textIndexBuffer);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(float) * 3 * 2, textindices, GL_STATIC_DRAW);
     glEnableVertexAttribArray(0);
     glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(float), 0);
     glBindVertexArray(0);
-
 
     glClearColor(0.0f, 0.0f, 0.4f, 0.0f);
 
 
     SDL_Event event;
-    bool running = true, debug_fps = false;
+    bool running = true, debug_fps = true;
 
     int fpsProfileFrame;
     std::stringstream fpsCount;

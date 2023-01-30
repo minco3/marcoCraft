@@ -7,12 +7,23 @@ enable_testing()
 set(INCLUDES_FOLDER includes)
 file(GLOB_RECURSE SOURCE_FILES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} CONFIGURE_DEPENDS "${INCLUDES_FOLDER}/*.cpp")
 
+# SET(SOURCE_FILES
+#     includes/opengl/Renderer.cpp
+#     includes/opengl/IndexBuffer.cpp
+#     includes/opengl/VertexBuffer.cpp
+#     includes/textures/texture.cpp
+#     includes/textures/stb_image.cpp
+#     includes/camera/camera.cpp
+#     includes/utils/a.cpp
+# )
+
+
 add_executable(minecraft main.cpp ${SOURCE_FILES})
 find_package(GTest)
 find_package(GLEW)
 find_package(freeglut)
 find_package(SDL2)
-find_package(freetype)
+find_package(Freetype)
 
 include_directories("C:/msys64/mingw64/include/freetype2")
 message(STATUS ${INCLUDE_DIRECTORIES})
