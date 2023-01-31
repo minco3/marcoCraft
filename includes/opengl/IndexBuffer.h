@@ -4,13 +4,13 @@
 
 class IndexBuffer
 {
-    public:
+public:
     IndexBuffer(const GLuint * data, unsigned int count);
     ~IndexBuffer();
     void Bind() const;
     void Unbind() const;
 
-    private:
-    GLuint m_BufferID;
+private:
+    GLuint m_RendererID;
     GLuint m_Count;
 };

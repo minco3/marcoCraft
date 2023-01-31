@@ -18,11 +18,11 @@ class TextAtlas
 {
     friend class Text;
 
-    public:
+public:
     TextAtlas(std::string path, int size);
     loadFont(std::string path, int size);
 
-    private:
+private:
     Texture2D m_AtlasTexture;
     std::map<char, Character> m_Characters;
     std::string m_Path;

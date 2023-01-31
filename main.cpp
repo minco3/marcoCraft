@@ -17,6 +17,8 @@
 
 #include "includes/opengl/renderer.h"
 #include "includes/opengl/VertexBuffer.h"
+#include "includes/opengl/VertexBufferLayout.h"
+#include "includes/opengl/VertexArray.h"
 #include "includes/opengl/IndexBuffer.h"
 #include "includes/shader/shaderLoader.h"
 #include "includes/camera/camera.h"
@@ -42,12 +44,15 @@ int main(int argc, char** argv) {
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_CULL_FACE);
     glDepthFunc(GL_LESS);
-    glEnable(GL_BLEND);
+    // glEnable(GL_BLEND);
 
     GLuint shaderID = loadShaders("../SimpleShader.glsl");
     GLuint MatrixID = glGetUniformLocation(shaderID, "MVP");
 
     GLuint textShaderID = loadShaders("../TextShader.glsl");
+
+    // TextAtlas font("../res/ariel.ttf", 48);
+    // Text fpsCounter(font);
 
     // loadFont("../includes/text/arial.ttf", 48, characters);
 
@@ -90,7 +95,7 @@ int main(int argc, char** argv) {
         { 1.0f,-1.0f, 1.0f,     0.982f,  0.099f,  0.879f }  //5
     };
 
-    static const GLfloat index_vertices[8][6] = {
+    static const GLfloat vertices[8][6] = {
         { -1.0f,-1.0f,-1.0f,    1.0f,  0.0f,  0.0f }, //0
         { -1.0f,-1.0f, 1.0f,    0.0f,  1.0f,  0.0f }, //1
         { -1.0f, 1.0f, 1.0f,    0.0f,  0.0f,  1.0f }, //2
@@ -116,41 +121,16 @@ int main(int argc, char** argv) {
         7, 2, 5
     };
     
-    GLuint VAO;
-    glGenVertexArrays(1, &VAO);
-    glBindVertexArray(VAO);
+    VertexArray va;
+    VertexBuffer vb(vertices, 8*6*sizeof(float));
+    VertexBufferLayout(layout);
+    layout.Push(GL_FLOAT, 3);
+    layout.Push(GL_FLOAT, 3);
+    va.AddBuffer(vb, layout);
 
-    GLuint VBO;
-    glGenBuffers(1, &VBO);
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(index_vertices), index_vertices, GL_STATIC_DRAW);
+    IndexBuffer ib(indices, 36);
 
-    GLuint IBO;
-    glGenBuffers(1, &IBO);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, IBO);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
-
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(
-        0,
-        3,
-        GL_FLOAT,
-        GL_FALSE,
-        sizeof(float)*6,
-        (void*)0
-    );
-
-    glEnableVertexAttribArray(1);
-    glVertexAttribPointer(
-        1,
-        3,
-        GL_FLOAT,
-        GL_FALSE,
-        sizeof(float)*6,
-        (void*)(sizeof(float)*3)
-    );
-
-    glBindVertexArray(0);
+    va.Unbind();
 
     glm::mat4 Projection = glm::perspective(glm::radians(45.0f), (float)width / (float)height, 0.1f, 100.0f);
 
@@ -283,16 +263,18 @@ int main(int argc, char** argv) {
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+
         glUseProgram(shaderID);
 
         glm::mat4 View = camera.getView();
         glm::mat4 Model = glm::mat4(1.0f);
         glm::mat4 mvp = Projection * View * Model;
         glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &mvp[0][0]);
-
-        glBindVertexArray(VAO);
-        glDrawElements(GL_TRIANGLES, 12*3, GL_UNSIGNED_INT, 0);
-        glBindVertexArray(0);
+        
+        va.Bind();
+        ib.Bind();
+        GLCall(glDrawElements(GL_TRIANGLES, 12*3, GL_UNSIGNED_INT, 0));
+        va.Unbind();
         if (debug_fps) {
             if (fpsProfileFrame % 128 == 0) {
                 fpsProfileFrame = 1;
@@ -304,7 +286,7 @@ int main(int argc, char** argv) {
             } else {
                 fpsProfileFrame++;
             }
-            RenderText(textShaderID, textbuffer, textVertexArrayID, characters, std::string("fps: ") + fpsCount.str(), 25.0f, 25.0f, 1.0f, glm::vec3(1.0f, 1.0f, 1.0f));
+            // fpsCounter.draw();
         }
         p2 = std::chrono::high_resolution_clock::now();
 

@@ -11,5 +11,5 @@ class VertexBuffer
     void Unbind() const;
 
     private:
-    GLuint m_BufferID;
+    GLuint m_RendererID;
 };

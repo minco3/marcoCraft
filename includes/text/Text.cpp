@@ -1,7 +1,9 @@
 #include "Text.h"
 
-Text::Text(std::shared_ptr<TextAtlas> TextAtlas, std::string Font, std::string String)
-    : m_TextAtlas(TextAtlas), M_Color(1.0f, 1.0f, 1.0f), M_M_Scale(1)
+#include "../shader/shaderLoader.h"
+
+Text::Text(const TextAtlas& textAtlas, std::string Font, std::string String)
+    : m_TextAtlas(textAtlas), m_Color(1.0f, 1.0f, 1.0f), m_Scale(1)
 {
     m_ShaderID = loadShaders("../includes/text/TextShader.glsl");
 
@@ -23,17 +25,19 @@ void Text::RenderText()
 {
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glUseProgram(m_ShaderID);
-    glBindVertexArray(textVertexArrayID);
+    va.Bind();
     glUniform3f(glGetUniformLocation(m_ShaderID, "textColor"), m_Color.r, m_Color.g, m_Color.b);
     glUniformMatrix4fv(glGetUniformLocation(m_ShaderID, "projection"), 1, GL_FALSE, &m_Projection[0][0]);
     glActiveTexture(GL_TEXTURE0);
     glUniform1i(glGetUniformLocation(m_ShaderID, "text"), 0);
 
+    float x = m_Position.x;
+
     for (char c : m_String) {
-        Character ch = m_TextAtlas->m_Characters[c];
+        Character ch = m_TextAtlas.m_Characters[c];
 
         float xpos = x + ch.Bearing.x;
-        float ypos = y - (ch.Size.y - ch.Bearing.y);
+        float ypos = m_Position.y - (ch.Size.y - ch.Bearing.y);
 
         float w = ch.Size.x * m_Scale;
         float h = ch.Size.y * m_Scale;
@@ -59,12 +63,11 @@ void Text::RenderText()
         //     std::cout << '\n';
         // }
 
-        glBindTexture(GL_TEXTURE_2D, ch.TextureID);
 
         glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(float) * 4 * 4, vertices);
 
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-        x += (ch.Advance >> 6) * M_Scale; // bitshift by 6 to get value in pixels (2^6 = 64)
+        x += (ch.Advance >> 6) * m_Scale; // bitshift by 6 to get value in pixels (2^6 = 64)
     }
 
     glBindVertexArray(0);
