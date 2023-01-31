@@ -122,6 +122,7 @@ int main(int argc, char** argv) {
     };
     
     VertexArray va;
+    va.Bind();
     VertexBuffer vb(vertices, 8*6*sizeof(float));
     VertexBufferLayout(layout);
     layout.Push(GL_FLOAT, 3);
