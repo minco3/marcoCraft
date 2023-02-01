@@ -1,11 +1,10 @@
 #include "camera.h"
 
-Camera::Camera() :
-    cameraFront(0.0f, 0.0f, -1.0f),
-    cameraPos(0.0f, 0.0f, 3.0f),
-    cameraUp(0.0f, 1.0f, 0.0f) {}
+Camera::Camera() 
+    : cameraFront(0.0f, 0.0f, -1.0f), cameraPos(0.0f, 0.0f, 3.0f), cameraUp(0.0f, 1.0f, 0.0f) {}
 
-void Camera::move(float deltaTime) {
+void Camera::move(float deltaTime)
+{
     glm::vec3 cameraVelocity(0.0f, 0.0f, 0.0f);
     if (back) cameraVelocity -= cameraFront;
     if (forward) cameraVelocity += cameraFront;
@@ -19,7 +18,8 @@ void Camera::move(float deltaTime) {
     cameraPos += cameraVelocity*glm::vec3(deltaTime/1000,deltaTime/1000,deltaTime/1000);
 }
 
-void Camera::look(Sint32 xrel, Sint32 yrel) {
+void Camera::look(Sint32 xrel, Sint32 yrel)
+{
     cameraFront = glm::normalize(
         glm::vec3(cameraFront.x*cos(xrel/sensitivity)-cameraFront.z*sin(xrel/sensitivity),
                   cameraFront.y-yrel/sensitivity,
@@ -27,6 +27,26 @@ void Camera::look(Sint32 xrel, Sint32 yrel) {
     );
 }
 
-glm::mat4 Camera::getView() {
+void Camera::SetScreenSize(float width, float height)
+{
+    m_ScreenWidth = width;
+    m_ScreenHeight = height;
+    UpdateProjection();
+}
+
+void Camera::UpdateProjection()
+{
+    m_Projection = glm::perspective(glm::radians(45.0f), (float)m_ScreenWidth / (float)m_ScreenHeight, 0.1f, 100.0f);
+}
+
+glm::mat4 Camera::getView()
+{
     return glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
+}
+
+glm::mat4 Camera::getMVP()
+{
+    glm::mat4 View = getView();
+    glm::mat4 Model = glm::mat4(1.0f);
+    return m_Projection * View * Model;
 }

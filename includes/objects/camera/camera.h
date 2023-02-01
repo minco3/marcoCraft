@@ -9,7 +9,12 @@ class Camera {
         
         void move(float deltaTime);
         void look(Sint32 xrel, Sint32 yrel);
+        
+        void SetScreenSize(float width, float height);
+        void UpdateProjection();
+        
         glm::mat4 getView();
+        glm::mat4 getMVP();
 
         bool forward = false;
         bool back = false;
@@ -24,4 +29,6 @@ class Camera {
         glm::vec3 cameraPos;
         glm::vec3 cameraFront;
         glm::vec3 cameraUp;
+        glm::mat4 m_Projection;
+        float m_ScreenWidth, m_ScreenHeight;
 };

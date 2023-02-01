@@ -1,6 +1,7 @@
 #define SDL_MAIN_HANDLED
 
 #include <SDL2/SDL.h>
+#include <SDL2/SDL_image.h>
 #include <vector>
 #include <iostream>
 #include <iomanip>
@@ -20,9 +21,10 @@
 #include "includes/opengl/VertexBufferLayout.h"
 #include "includes/opengl/VertexArray.h"
 #include "includes/opengl/IndexBuffer.h"
-#include "includes/shader/shaderLoader.h"
-#include "includes/camera/camera.h"
-#include "includes/text/Text.h"
+#include "includes/opengl/Shader.h"
+
+#include "includes/objects/camera/camera.h"
+#include "includes/objects/text/Text.h"
 
 int main(int argc, char** argv) {
 
@@ -35,9 +37,15 @@ int main(int argc, char** argv) {
     SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 4);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
 
-    SDL_Window* window = SDL_CreateWindow("Test", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, width, height, SDL_WINDOW_SHOWN | SDL_WINDOW_OPENGL);
+    SDL_Window* window = SDL_CreateWindow("Marcocraft", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, width, height, SDL_WINDOW_SHOWN | SDL_WINDOW_OPENGL);
     SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, 0);
     SDL_GLContext context = SDL_GL_CreateContext(window);
+
+    SDL_Surface* icon;
+    SDL_RWops*  rwop;
+    rwop = SDL_RWFromFile("../res/marcotriangle.png", "rb");
+    icon = IMG_LoadPNG_RW(rwop);
+    SDL_SetWindowIcon(window, icon);
 
 
     glewInit();
@@ -50,12 +58,10 @@ int main(int argc, char** argv) {
     glEnable(GL_BLEND);
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 
-    GLuint shaderID = loadShaders("../SimpleShader.glsl");
-    GLuint MatrixID = glGetUniformLocation(shaderID, "MVP");
+    Shader SimpleShader("../res/shaders/SimpleShader.glsl");
 
-    GLuint textShaderID = loadShaders("../TextShader.glsl");
 
-    TextAtlas font("../res/arial.ttf", 48);
+    Font font("../res/arial.ttf", 48);
     Text fpsCounter(font);
 
     // loadFont("../includes/text/arial.ttf", 48, characters);
@@ -137,25 +143,18 @@ int main(int argc, char** argv) {
 
     va.Unbind();
 
-    glm::mat4 Projection = glm::perspective(glm::radians(45.0f), (float)width / (float)height, 0.1f, 100.0f);
-
-    static const unsigned int textindices[6] = {
-        0,1,2,
-        0,2,3
-    };
-
-    GLuint textbuffer, textVertexArrayID, textIndexBuffer;
-    glGenVertexArrays(1, &textVertexArrayID);
-    glGenBuffers(1, &textbuffer);
-    glGenBuffers(1, &textIndexBuffer);
-    glBindVertexArray(textVertexArrayID);
-    glBindBuffer(GL_ARRAY_BUFFER, textbuffer);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 4 * 4, NULL, GL_DYNAMIC_DRAW);  
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, textIndexBuffer);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(float) * 3 * 2, textindices, GL_STATIC_DRAW);
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(float), 0);
-    glBindVertexArray(0);
+    // GLuint textbuffer, textVertexArrayID, textIndexBuffer;
+    // glGenVertexArrays(1, &textVertexArrayID);
+    // glGenBuffers(1, &textbuffer);
+    // glGenBuffers(1, &textIndexBuffer);
+    // glBindVertexArray(textVertexArrayID);
+    // glBindBuffer(GL_ARRAY_BUFFER, textbuffer);
+    // glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 4 * 4, NULL, GL_DYNAMIC_DRAW);  
+    // glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, textIndexBuffer);
+    // glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(float) * 3 * 2, textindices, GL_STATIC_DRAW);
+    // glEnableVertexAttribArray(0);
+    // glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(float), 0);
+    // glBindVertexArray(0);
 
     glClearColor(0.0f, 0.0f, 0.4f, 0.0f);
 
@@ -169,6 +168,7 @@ int main(int argc, char** argv) {
     double lastTime = SDL_GetTicks64(), currentTime = lastTime;
 
     Camera camera;
+    camera.SetScreenSize(width, height);
 
     std::chrono::high_resolution_clock::time_point p1, p2;
     std::chrono::duration<double> duration;
@@ -269,17 +269,14 @@ int main(int argc, char** argv) {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 
-        glUseProgram(shaderID);
-
-        glm::mat4 View = camera.getView();
-        glm::mat4 Model = glm::mat4(1.0f);
-        glm::mat4 mvp = Projection * View * Model;
-        glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &mvp[0][0]);
+        SimpleShader.Bind();
+        SimpleShader.SetUniformMat4fv("MVP", camera.getMVP());
         
         va.Bind();
-        ib.Bind();
+        // ib.Bind();
         GLCall(glDrawElements(GL_TRIANGLES, 12*3, GL_UNSIGNED_INT, 0));
         va.Unbind();
+
         if (debug_fps) {
             if (fpsProfileFrame % 128 == 0) {
                 fpsProfileFrame = 1;

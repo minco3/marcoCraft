@@ -1,25 +1,25 @@
-#include "TextAtlas.h"
+#include "font.h"
 
-TextAtlas::TextAtlas(std::string path, int size)
-    : m_AtlasTexture(GL_RED), m_Path(path), m_Size(size)
+Font::Font(const std::string& path, int size)
+    : m_TextureAtlas(GL_RED)
 {
-    loadFont(m_Path, m_Size);
+
 }
 
-
-int TextAtlas::loadFont(std::string path , int size) {
+bool Font::LoadFont(std::string path , int size)
+{
     FT_Library ft;
 
     if (FT_Init_FreeType(&ft)) {
         std::cout << "Could not init FreeType" << std::endl;
-        return -1;
+        return false;
     }
 
     FT_Face face;
 
     if (FT_New_Face(ft, path.c_str(), 0, &face)) {
         std::cout << "Failed to load font" << std::endl;  
-        return -1;
+        return false;
     }
 
     FT_Set_Pixel_Sizes(face, 0, 48);
@@ -84,7 +84,7 @@ int TextAtlas::loadFont(std::string path , int size) {
             x
         };
 
-        m_Characters.insert({i, character});
+        m_Symbols.insert({i, character});
     }
 
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
@@ -96,5 +96,5 @@ int TextAtlas::loadFont(std::string path , int size) {
     FT_Done_FreeType(ft);
 
     glBindTexture(GL_TEXTURE_2D, 0);
-    return 0;
+    return true;
 }

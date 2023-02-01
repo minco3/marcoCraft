@@ -1,11 +1,9 @@
 #include "Text.h"
 
-#include "../shader/shaderLoader.h"
-
-Text::Text(const TextAtlas& textAtlas, std::string String)
-    : m_Projection(glm::ortho(0.0f, 800.0f, 0.0f, 600.0f)), m_TextAtlas(textAtlas), m_Color(1.0f, 1.0f, 1.0f), m_Scale(1)
+Text::Text(const Font& font, std::string String)
+    : m_Projection(glm::ortho(0.0f, 800.0f, 0.0f, 600.0f)), m_Font(font), m_Color(1.0f, 1.0f, 1.0f), m_Scale(1)
 {
-    m_ShaderID = loadShaders("../includes/text/TextShader.glsl");
+    // m_ShaderID = loadShaders("../includes/text/TextShader.glsl");
 
 }
     
@@ -34,7 +32,7 @@ void Text::RenderText()
     float x = m_Position.x;
 
     for (char c : m_String) {
-        Character ch = m_TextAtlas.m_Characters[c];
+        Character ch = m_Font.m_Symbols[c];
 
         float xpos = x + ch.Bearing.x;
         float ypos = m_Position.y - (ch.Size.y - ch.Bearing.y);

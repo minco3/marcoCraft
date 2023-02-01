@@ -1,10 +1,13 @@
 #pragma once
 
 #include <map>
+
 #include <ft2build.h>
 #include <freetype/freetype.h>
 
-#include "../opengl/Texture2D.h"
+#include "../../opengl/Shader.h"
+#include "../../utils/TextureAtlas.h"
+#include "../../primitives/Quad.h"
 
 struct Character
 {
@@ -14,17 +17,16 @@ struct Character
     unsigned int offset;
 };
 
-class TextAtlas
+class Font
 {
     friend class Text;
-
 public:
-    TextAtlas(std::string path, int size);
-    loadFont(std::string path, int size);
+    Font(const std::string& path, int size);
 
 private:
-    Texture2D m_AtlasTexture;
-    std::map<char, Character> m_Characters;
+    std::map<unsigned int, Character> m_Symbols;
     std::string m_Path;
     int m_Size;
+    TextureAtlas m_TextureAtlas;
+    bool LoadFont(std::string path , int size);
 };
