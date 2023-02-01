@@ -12,7 +12,7 @@
 class Text
 {
 public:
-    Text(const TextAtlas& textAtlas, std::string font, std::string string = std::string());
+    Text(const TextAtlas& textAtlas, std::string string = std::string());
     
     void SetString(std::string string);
     std::string GetString();
@@ -20,7 +20,8 @@ public:
     void RenderText();
 
 private:
-    glm::mat4 m_Projection = glm::ortho(0.0f, 800.0f, 0.0f, 600.0f);
+    VertexArray m_Quad;
+    glm::mat4 m_Projection;
     TextAtlas m_TextAtlas;
     std::string m_Font;
     std::string m_String;

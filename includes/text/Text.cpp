@@ -2,8 +2,8 @@
 
 #include "../shader/shaderLoader.h"
 
-Text::Text(const TextAtlas& textAtlas, std::string Font, std::string String)
-    : m_TextAtlas(textAtlas), m_Color(1.0f, 1.0f, 1.0f), m_Scale(1)
+Text::Text(const TextAtlas& textAtlas, std::string String)
+    : m_Projection(glm::ortho(0.0f, 800.0f, 0.0f, 600.0f)), m_TextAtlas(textAtlas), m_Color(1.0f, 1.0f, 1.0f), m_Scale(1)
 {
     m_ShaderID = loadShaders("../includes/text/TextShader.glsl");
 

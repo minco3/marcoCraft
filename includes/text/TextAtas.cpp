@@ -1,7 +1,7 @@
 #include "TextAtlas.h"
 
 TextAtlas::TextAtlas(std::string path, int size)
-    : m_Path(path), m_Size(size)
+    : m_AtlasTexture(GL_RED), m_Path(path), m_Size(size)
 {
     loadFont(m_Path, m_Size);
 }
@@ -44,7 +44,6 @@ int TextAtlas::loadFont(std::string path , int size) {
     glActiveTexture(GL_TEXTURE0);
     glGenTextures(1, &texture);
     glBindTexture(GL_TEXTURE_2D, texture);
-    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);   
     
     glTexImage2D(
         GL_TEXTURE_2D,

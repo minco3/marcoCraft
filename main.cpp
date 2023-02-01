@@ -39,20 +39,24 @@ int main(int argc, char** argv) {
     SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, 0);
     SDL_GLContext context = SDL_GL_CreateContext(window);
 
+
     glewInit();
+
+    {
 
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_CULL_FACE);
     glDepthFunc(GL_LESS);
-    // glEnable(GL_BLEND);
+    glEnable(GL_BLEND);
+    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 
     GLuint shaderID = loadShaders("../SimpleShader.glsl");
     GLuint MatrixID = glGetUniformLocation(shaderID, "MVP");
 
     GLuint textShaderID = loadShaders("../TextShader.glsl");
 
-    // TextAtlas font("../res/ariel.ttf", 48);
-    // Text fpsCounter(font);
+    TextAtlas font("../res/arial.ttf", 48);
+    Text fpsCounter(font);
 
     // loadFont("../includes/text/arial.ttf", 48, characters);
 
@@ -287,7 +291,7 @@ int main(int argc, char** argv) {
             } else {
                 fpsProfileFrame++;
             }
-            // fpsCounter.draw();
+            fpsCounter.RenderText();
         }
         p2 = std::chrono::high_resolution_clock::now();
 
@@ -295,6 +299,7 @@ int main(int argc, char** argv) {
         SDL_GL_SwapWindow(window);
     }
 
+    }
 
     SDL_GL_DeleteContext(context);
     SDL_DestroyWindow(window);
