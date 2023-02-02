@@ -26,14 +26,13 @@ struct VertexBufferElement
 class VertexBufferLayout
 {
 public:
-    VertexBufferLayout(bool interleaved = true)
-        : m_Stride(0), m_IsInterleaved(interleaved) {}
+    VertexBufferLayout()
+        : m_Stride(0) {}
 
     void Push(GLuint type, unsigned int count)
     {
         m_Elements.push_back({type, count, GL_FALSE});
         
-        // if (m_IsInterleaved)
         
         m_Stride += count * VertexBufferElement::SizeOfType(type);
     }
@@ -43,6 +42,5 @@ public:
 
 private:
     std::vector<VertexBufferElement> m_Elements;
-    bool m_IsInterleaved;
     unsigned int m_Stride;
 };

@@ -81,7 +81,6 @@ bool Font::LoadFont(std::string path , int size)
             glm::ivec2(g->bitmap.width, g->bitmap.rows),
             glm::ivec2(g->bitmap_left, g->bitmap_top),
             g->advance.x,
-            x
         };
 
         m_Symbols.insert({i, character});

@@ -14,7 +14,6 @@ struct Character
     glm::ivec2   Size;       // Size of glyph
     glm::ivec2   Bearing;    // Offset from baseline to left/top of glyph
     FT_Pos Advance;    // Offset to advance to next glyph
-    unsigned int offset;
 };
 
 class Font
@@ -24,9 +23,9 @@ public:
     Font(const std::string& path, int size);
 
 private:
-    std::map<unsigned int, Character> m_Symbols;
     std::string m_Path;
     int m_Size;
+    std::map<unsigned int, Character> m_Symbols;
     TextureAtlas m_TextureAtlas;
     bool LoadFont(std::string path , int size);
 };

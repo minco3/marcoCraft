@@ -8,6 +8,7 @@
 
 #include "Font.h"
 #include "../../opengl/VertexArray.h"
+#include "../../primitives/Quad.h"
 
 class Text
 {
@@ -20,14 +21,13 @@ public:
     void RenderText();
 
 private:
-    VertexArray m_Quad;
-    glm::mat4 m_Projection;
-    Font m_Font;
     std::string m_String;
-    GLuint m_ShaderID;
+    Font m_Font;
+    Shader m_Shader;
+    glm::mat4 m_Projection;
     glm::vec2 m_Position;
     glm::vec3 m_Color;
-    VertexArray va;
+    Quad m_Quad;
     float m_Scale;
 
 };

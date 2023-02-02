@@ -26,6 +26,8 @@
 #include "includes/objects/camera/camera.h"
 #include "includes/objects/text/Text.h"
 
+#include "includes/primitives/Quad.h"
+
 int main(int argc, char** argv) {
 
     const int width = 1000, height = 1000;
@@ -60,9 +62,13 @@ int main(int argc, char** argv) {
 
     Shader SimpleShader("../res/shaders/SimpleShader.glsl");
 
-
     Font font("../res/arial.ttf", 48);
-    Text fpsCounter(font);
+
+    Quad quad;
+    
+    
+    
+    // Text fpsCounter(font);
 
     // loadFont("../includes/text/arial.ttf", 48, characters);
 
@@ -277,6 +283,9 @@ int main(int argc, char** argv) {
         GLCall(glDrawElements(GL_TRIANGLES, 12*3, GL_UNSIGNED_INT, 0));
         va.Unbind();
 
+        quad.GetVertexArray().Bind();
+        GLCall(glDrawElements(GL_TRIANGLES, 2*3, GL_UNSIGNED_INT, 0));
+
         if (debug_fps) {
             if (fpsProfileFrame % 128 == 0) {
                 fpsProfileFrame = 1;
@@ -288,7 +297,7 @@ int main(int argc, char** argv) {
             } else {
                 fpsProfileFrame++;
             }
-            fpsCounter.RenderText();
+            // fpsCounter.RenderText();
         }
         p2 = std::chrono::high_resolution_clock::now();
 

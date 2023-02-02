@@ -40,29 +40,7 @@ void Text::RenderText()
         float w = ch.Size.x * m_Scale;
         float h = ch.Size.y * m_Scale;
 
-        float vertices[4][4] = {
-            { xpos,     ypos + h,   0.0f, 1.0f}, // 0            
-            { xpos,     ypos,       0.0f, 0.0f}, // 1
-            { xpos + w, ypos,       1.0f, 0.0f}, // 2
-            { xpos + w, ypos + h,   1.0f, 1.0f}  // 3
-        };
-
-        // float vertices[4][4] = {
-        //     { xpos,     ypos + h,   ch.offset, (float)ch.Size.y / ch.atlasHeight}, // 0            
-        //     { xpos,     ypos,       ch.offset, 0.0f}, // 1
-        //     { xpos + w, ypos,       ch.offset + (float)ch.Size.x, 0.0f}, // 2
-        //     { xpos + w, ypos + h,   (float)ch.Size.y / ch.atlasHeight, (float)ch.Size.y / ch.atlasHeight }  // 3
-        // };
-
-        // for (int i=0; i<4; i++) {
-        //     for (int j=0; j<4; j++) {
-        //         std::cout << vertices[i][j] << ' ';
-        //     }
-        //     std::cout << '\n';
-        // }
-
-
-        glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(float) * 4 * 4, vertices);
+        m_Quad.UpdateVertices(glm::vec2(xpos, ypos), glm::vec2(w, h));
 
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
         x += (ch.Advance >> 6) * m_Scale; // bitshift by 6 to get value in pixels (2^6 = 64)
