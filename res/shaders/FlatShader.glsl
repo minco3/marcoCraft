@@ -1,0 +1,24 @@
+#shader vertex
+#version 330 core
+
+layout (location = 0) in vec4 vertex;
+
+uniform mat4 projection;
+
+void main()
+{
+    gl_Position = projection * vec4(vertex.xy, 0.0, 1.0);
+}
+
+
+#shader fragment
+#version 330 core
+
+out vec4 color;
+
+uniform vec3 Color;
+
+void main()
+{
+    color = vec4(Color, 1.0);    
+}

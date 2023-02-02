@@ -61,13 +61,15 @@ int main(int argc, char** argv) {
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 
     Shader SimpleShader("../res/shaders/SimpleShader.glsl");
+    Shader TextShader("../res/shaders/TextShader.glsl");
+    Shader FlatShader("../res/shaders/FlatShader.glsl");
 
-    Font font("../res/arial.ttf", 48);
+    // Font font("../res/arial.ttf", 48);
 
     Quad quad;
-    
-    
-    
+
+    quad.UpdateVertices(glm::vec2(10, 10), glm::vec2(100, 100));
+
     // Text fpsCounter(font);
 
     // loadFont("../includes/text/arial.ttf", 48, characters);
@@ -281,8 +283,10 @@ int main(int argc, char** argv) {
         va.Bind();
         // ib.Bind();
         GLCall(glDrawElements(GL_TRIANGLES, 12*3, GL_UNSIGNED_INT, 0));
-        va.Unbind();
 
+        FlatShader.Bind();
+        FlatShader.SetUniform3f("Color", glm::vec3(1.0f,1.0f,1.0f));
+        FlatShader.SetUniformMat4fv("projection", glm::ortho(0.0f, 800.0f, 0.0f, 600.0f));
         quad.GetVertexArray().Bind();
         GLCall(glDrawElements(GL_TRIANGLES, 2*3, GL_UNSIGNED_INT, 0));
 

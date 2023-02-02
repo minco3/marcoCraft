@@ -1,11 +1,9 @@
 #include "Text.h"
 
 Text::Text(const Font& font, std::string String)
-    : m_Projection(glm::ortho(0.0f, 800.0f, 0.0f, 600.0f)), m_Font(font), m_Color(1.0f, 1.0f, 1.0f), m_Scale(1)
-{
-    // m_ShaderID = loadShaders("../includes/text/TextShader.glsl");
-
-}
+    : m_Projection(glm::ortho(0.0f, 800.0f, 0.0f, 600.0f)), m_Font(font), m_Color(1.0f, 1.0f, 1.0f),
+    m_Scale(1), m_Shader("../includes/text/TextShader.glsl")
+{}
     
 void Text::SetString(std::string string)
 {
@@ -22,12 +20,11 @@ std::string Text::GetString()
 void Text::RenderText()
 {
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    glUseProgram(m_ShaderID);
-    va.Bind();
-    glUniform3f(glGetUniformLocation(m_ShaderID, "textColor"), m_Color.r, m_Color.g, m_Color.b);
-    glUniformMatrix4fv(glGetUniformLocation(m_ShaderID, "projection"), 1, GL_FALSE, &m_Projection[0][0]);
+    m_Shader.SetUniform3f("textColor", m_Color);
+    m_Shader.SetUniform4fv("projection", m_Projection);
     glActiveTexture(GL_TEXTURE0);
-    glUniform1i(glGetUniformLocation(m_ShaderID, "text"), 0);
+    m_Shader.SetUniform1i("text", 0);
+
 
     float x = m_Position.x;
 
