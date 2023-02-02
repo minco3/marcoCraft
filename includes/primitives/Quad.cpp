@@ -3,10 +3,10 @@
 #include "../opengl/VertexBufferLayout.h"
 
 Quad::Quad()
-    : m_IndexBuffer(quadIndices, 6), m_VertexBuffer(4*2*sizeof(float))
+    : m_VertexArray(), m_IndexBuffer(quadIndices, 3*2), m_VertexBuffer(4*2*sizeof(float))
 {
     VertexBufferLayout layout;
-    layout.Push(GL_FLOAT, 3);
+    layout.Push(GL_FLOAT, 2);
     m_VertexArray.AddBuffer(m_VertexBuffer, layout);
     m_IndexBuffer.Bind();
 }

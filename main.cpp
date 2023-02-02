@@ -45,7 +45,7 @@ int main(int argc, char** argv) {
 
     SDL_Surface* icon;
     SDL_RWops*  rwop;
-    rwop = SDL_RWFromFile("../res/marcotriangle.png", "rb");
+    rwop = SDL_RWFromFile("res/marcotriangle.png", "rb");
     icon = IMG_LoadPNG_RW(rwop);
     SDL_SetWindowIcon(window, icon);
 
@@ -68,7 +68,7 @@ int main(int argc, char** argv) {
 
     Quad quad;
 
-    quad.UpdateVertices(glm::vec2(10, 10), glm::vec2(100, 100));
+    quad.UpdateVertices(glm::vec2(100, 100), glm::vec2(100, 100));
 
     // Text fpsCounter(font);
 
@@ -170,7 +170,7 @@ int main(int argc, char** argv) {
     SDL_Event event;
     bool running = true, debug_fps = true;
 
-    int fpsProfileFrame;
+    int fpsProfileFrame = 0;
     std::stringstream fpsCount;
 
     double lastTime = SDL_GetTicks64(), currentTime = lastTime;
@@ -284,11 +284,14 @@ int main(int argc, char** argv) {
         // ib.Bind();
         GLCall(glDrawElements(GL_TRIANGLES, 12*3, GL_UNSIGNED_INT, 0));
 
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
         FlatShader.Bind();
         FlatShader.SetUniform3f("Color", glm::vec3(1.0f,1.0f,1.0f));
-        FlatShader.SetUniformMat4fv("projection", glm::ortho(0.0f, 800.0f, 0.0f, 600.0f));
+        FlatShader.SetUniformMat4fv("projection", glm::ortho(0.0f, 1000.0f, 0.0f, 1000.0f));
         quad.GetVertexArray().Bind();
         GLCall(glDrawElements(GL_TRIANGLES, 2*3, GL_UNSIGNED_INT, 0));
+        glBlendFunc(GL_ONE, GL_ZERO);
+
 
         if (debug_fps) {
             if (fpsProfileFrame % 128 == 0) {
