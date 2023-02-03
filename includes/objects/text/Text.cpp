@@ -29,7 +29,7 @@ void Text::RenderText()
     float x = m_Position.x;
 
     for (char c : m_String) {
-        Character ch = m_Font.m_Symbols[c];
+        Character ch = m_Font.m_Characters[c];
 
         float xpos = x + ch.Bearing.x;
         float ypos = m_Position.y - (ch.Size.y - ch.Bearing.y);

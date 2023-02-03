@@ -5,17 +5,19 @@
 class Texture2D
 {
 public:
-    Texture2D(GLint internalFormat, const GLuint * data = nullptr, GLuint width = 0, GLuint height = 0);
+    Texture2D();
     ~Texture2D();
 
     void Bind() const;
     void Unbind() const;
 
+    void SetInternalFormat(GLuint format);
+
     void Resize(glm::vec2 size);
+    void SetData(glm::vec2 pos, glm::vec2 size, unsigned char* data);
 
 private:
     GLuint m_RendererID;
-    GLuint m_Width;
-    GLuint m_Height;
     GLuint m_InternalFormat;
+    glm::vec2 m_Size;
 };

@@ -1,9 +1,19 @@
 #include "font.h"
 
 Font::Font(const std::string& path, int size)
-    : m_TextureAtlas(GL_RED)
 {
+    GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE));
+    GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE));
+    GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
+    GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
+    m_TextureAtlas.SetInternalFormat(GL_RED);
+    LoadFont(path, size);
 
+}
+
+void Font::Bind()
+{
+    m_TextureAtlas.Bind();
 }
 
 bool Font::LoadFont(std::string path , int size)
@@ -40,22 +50,7 @@ bool Font::LoadFont(std::string path , int size)
         
     }
 
-    GLuint texture;
-    glActiveTexture(GL_TEXTURE0);
-    glGenTextures(1, &texture);
-    glBindTexture(GL_TEXTURE_2D, texture);
-    
-    glTexImage2D(
-        GL_TEXTURE_2D,
-        0,
-        GL_RED,
-        w,
-        h,
-        0,
-        GL_RED,
-        GL_UNSIGNED_BYTE,
-        0
-    );
+    m_TextureAtlas.Resize(glm::vec2(w, h));
 
     unsigned int x = 0;
 
@@ -63,37 +58,21 @@ bool Font::LoadFont(std::string path , int size)
         if (FT_Load_Char(face, i, FT_LOAD_RENDER))
             continue;
 
-        glTexSubImage2D(
-            GL_TEXTURE_2D,
-            0,
-            x,
-            0,
-            g->bitmap.width,
-            g->bitmap.rows,
-            GL_RED,
-            GL_UNSIGNED_BYTE,
-            g->bitmap.buffer);
-
+        m_TextureAtlas.SetData(glm::vec2(x, 0), glm::vec2(g->bitmap.width, g->bitmap.rows), g->bitmap.buffer);
         x += g->bitmap.width;
 
-
         Character character = {
+            glm::ivec2(x, 0),
             glm::ivec2(g->bitmap.width, g->bitmap.rows),
             glm::ivec2(g->bitmap_left, g->bitmap_top),
             g->advance.x,
         };
 
-        m_Symbols.insert({i, character});
+        m_Characters.insert({i, character});
     }
-
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
     FT_Done_Face(face);
     FT_Done_FreeType(ft);
 
-    glBindTexture(GL_TEXTURE_2D, 0);
     return true;
 }
