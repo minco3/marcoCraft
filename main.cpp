@@ -238,7 +238,6 @@ int main(int argc, char** argv) {
         TextShader.SetUniformMat4fv("projection", glm::ortho(0.0f, 1000.0f, 0.0f, 1000.0f));
         font.Bind();
         Character c = font.m_Characters.at('M');
-        TextShader.SetUniform2i("coords", c.AtlasCoord);
         
         TextShader.SetUniform1i("text", 0);
         quad.GetVertexArray().Bind();
