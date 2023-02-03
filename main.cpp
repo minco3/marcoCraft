@@ -26,7 +26,7 @@
 #include "includes/objects/camera/camera.h"
 #include "includes/objects/text/Text.h"
 
-#include "includes/primitives/Quad.h"
+#include "includes/primitives/TexturedQuad.h"
 
 int main(int argc, char** argv) {
 
@@ -39,9 +39,12 @@ int main(int argc, char** argv) {
     SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 4);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
 
+
     SDL_Window* window = SDL_CreateWindow("Marcocraft", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, width, height, SDL_WINDOW_SHOWN | SDL_WINDOW_OPENGL);
     SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, 0);
     SDL_GLContext context = SDL_GL_CreateContext(window);
+
+    SDL_GL_SetSwapInterval(0); // disable vsync
 
     SDL_Surface* icon;
     SDL_RWops*  rwop;
@@ -61,18 +64,14 @@ int main(int argc, char** argv) {
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 
     Shader SimpleShader("../res/shaders/SimpleShader.glsl");
-    Shader TextShader("../res/shaders/TextShader.glsl");
     Shader FlatShader("../res/shaders/FlatShader.glsl");
 
     Font font("../res/arial.ttf", 48);
 
     Quad quad;
 
-    quad.UpdateVertices(glm::vec2(100, 100), glm::vec2(100, 100));
-
-    // Text fpsCounter(font);
-
-    // loadFont("../includes/text/arial.ttf", 48, characters);
+    Text fpsCounter(font);
+    fpsCounter.setPosition(glm::vec2(100,100));
 
     static const GLfloat vertices[8][6] = {
         { -1.0f,-1.0f,-1.0f,    1.0f,  0.0f,  0.0f }, //0
@@ -232,19 +231,7 @@ int main(int argc, char** argv) {
         // ib.Bind();
         GLCall(glDrawElements(GL_TRIANGLES, 12*3, GL_UNSIGNED_INT, 0));
 
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-        TextShader.Bind();
-        TextShader.SetUniform3f("textColor", glm::vec3(1.0f,1.0f,1.0f));
-        TextShader.SetUniformMat4fv("projection", glm::ortho(0.0f, 1000.0f, 0.0f, 1000.0f));
-        font.Bind();
-        Character c = font.m_Characters.at('M');
-        TextShader.SetUniform2i("coords", c.AtlasCoord);
-        
-        TextShader.SetUniform1i("text", 0);
-        quad.GetVertexArray().Bind();
-        GLCall(glDrawElements(GL_TRIANGLES, 2*3, GL_UNSIGNED_INT, 0));
-        glBlendFunc(GL_ONE, GL_ZERO);
-
+        fpsCounter.RenderText();
 
         if (debug_fps) {
             if (fpsProfileFrame % 128 == 0) {
@@ -254,10 +241,10 @@ int main(int argc, char** argv) {
                 fpsCount.clear();
                 fpsCount.str(std::string());
                 fpsCount << std::fixed << std::setprecision(1) << 1/duration.count();
-            } else {
-                fpsProfileFrame++;
+                fpsCounter.SetString(fpsCount.str());
             }
-            // fpsCounter.RenderText();
+            fpsProfileFrame++;
+            fpsCounter.RenderText();
         }
         p2 = std::chrono::high_resolution_clock::now();
 

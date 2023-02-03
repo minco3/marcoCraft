@@ -2,10 +2,6 @@
 
 Font::Font(const std::string& path, int size)
 {
-    GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE));
-    GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE));
-    GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
-    GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
     m_TextureAtlas.SetInternalFormat(GL_RED);
     LoadFont(path, size);
 
@@ -59,7 +55,6 @@ bool Font::LoadFont(std::string path , int size)
             continue;
 
         m_TextureAtlas.SetData(glm::vec2(x, 0), glm::vec2(g->bitmap.width, g->bitmap.rows), g->bitmap.buffer);
-        x += g->bitmap.width;
 
         Character character = {
             glm::ivec2(x, 0),
@@ -67,8 +62,10 @@ bool Font::LoadFont(std::string path , int size)
             glm::ivec2(g->bitmap_left, g->bitmap_top),
             g->advance.x,
         };
-
         m_Characters.insert({i, character});
+
+
+        x += g->bitmap.width;
     }
 
     FT_Done_Face(face);

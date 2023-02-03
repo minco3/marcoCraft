@@ -15,6 +15,7 @@ public:
 
     void Resize(glm::vec2 size);
     void SetData(glm::vec2 pos, glm::vec2 size, unsigned char* data);
+    glm::vec2 getSize() {return m_Size;}
 
 private:
     GLuint m_RendererID;

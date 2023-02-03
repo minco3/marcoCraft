@@ -8,7 +8,7 @@
 
 #include "Font.h"
 #include "../../opengl/VertexArray.h"
-#include "../../primitives/Quad.h"
+#include "../../primitives/TexturedQuad.h"
 
 class Text
 {
@@ -17,6 +17,8 @@ public:
     
     void SetString(std::string string);
     std::string GetString();
+
+    void setPosition(glm::vec2);
 
     void RenderText();
 

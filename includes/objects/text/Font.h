@@ -7,7 +7,7 @@
 
 #include "../../opengl/Shader.h"
 #include "../../utils/TextureAtlas.h"
-#include "../../primitives/Quad.h"
+#include "../../primitives/TexturedQuad.h"
 
 struct Character
 {
@@ -25,10 +25,10 @@ public:
 
     void Bind();
 
-    std::map<char, Character> m_Characters;
 private:
+    std::map<char, Character> m_Characters;
+    Texture2D m_TextureAtlas;
     std::string m_Path;
     int m_Size;
-    Texture2D m_TextureAtlas;
     bool LoadFont(std::string path , int size);
 };

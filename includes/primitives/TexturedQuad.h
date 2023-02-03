@@ -9,10 +9,12 @@ class Quad
 public:
     Quad();
 
-    VertexArray& GetVertexArray() { return m_VertexArray; }
     unsigned int IndexCount() { return 6; }
+    
+    void Bind();
+    void BindVB();
 
-    void UpdateVertices(glm::vec2 pos, glm::vec2 size);
+    void UpdateBuffer(glm::vec2 pos, glm::vec2 size, glm::vec2 texturePos, glm::vec2 textureSize);
 
 private:
 
