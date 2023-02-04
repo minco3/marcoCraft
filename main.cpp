@@ -23,6 +23,7 @@
 #include "includes/opengl/IndexBuffer.h"
 #include "includes/opengl/Shader.h"
 #include "includes/opengl/Texture2D.h"
+#include "includes/opengl/TextureArray.h"
 
 #include "includes/objects/camera/camera.h"
 #include "includes/objects/text/Text.h"
@@ -78,16 +79,25 @@ int main(int argc, char** argv) {
     cube.UpdateBuffer(glm::vec2(), glm::vec2(), glm::vec2(), glm::vec2());
 
     int x, y, bits;
-    unsigned char* dirtData = stbi_load("../res/dirt.png", &x, &y, &bits, 3);
+    unsigned char* dirtData = stbi_load("../res/dirt.png", &x, &y, &bits, 4);
+    unsigned char* grassSideData = stbi_load("../res/grass_block_side.png", &x, &y, &bits, 4);
+    unsigned char* grassTopData = stbi_load("../res/grass_block_top.png", &x, &y, &bits, 4);
 
     Texture2D dirt;
     GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE));
     GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE));
     GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST));
     GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST));
-    dirt.SetInternalFormat(GL_RGB);
+    dirt.SetInternalFormat(GL_RGBA);
     dirt.Resize(glm::vec2(x,y));
     dirt.SetData(glm::vec2(0,0), glm::vec2(x,y), dirtData);
+
+    TextureArray grass;
+    grass.SetInternalFormat(GL_RGBA);
+    grass.Resize(glm::vec3(16,16,3));
+    grass.SetData(glm::vec2(0, 0), 0, glm::vec2(16,16), dirtData);
+    grass.SetData(glm::vec2(0, 0), 1, glm::vec2(16,16), grassSideData);
+    grass.SetData(glm::vec2(0, 0), 2, glm::vec2(16,16), grassTopData);
 
     Text fpsCounter(font);
     fpsCounter.setPosition(glm::vec2(100,100));
@@ -251,9 +261,10 @@ int main(int argc, char** argv) {
 
         CubeShader.Bind();
         CubeShader.SetUniformMat4fv("MVP", camera.getMVP());
-        CubeShader.SetUniform1i("textureSlot", 0);
+        CubeShader.SetUniform1i("textureSlot", 1);
 
-        dirt.Bind();
+        grass.Bind();
+        GLCall(glGenerateMipmap(GL_TEXTURE_2D_ARRAY));
 
         cube.Bind();
         GLCall(glDrawArrays(GL_TRIANGLES, 0, cube.IndexCount()));

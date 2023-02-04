@@ -4,10 +4,8 @@ TextureArray::TextureArray()
 {
     GLCall(glGenTextures(1, &m_RendererID));
     Bind();
-    GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE));
-    GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE));
-    GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
-    GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
+    GLCall(glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_NEAREST));
+    GLCall(glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_NEAREST));
 }
 
 TextureArray::~TextureArray()
@@ -17,13 +15,13 @@ TextureArray::~TextureArray()
 
 void TextureArray::Bind() const
 {
-    glActiveTexture(GL_TEXTURE0);
-    GLCall(glBindTexture(GL_TEXTURE_2D, m_RendererID));
+    glActiveTexture(GL_TEXTURE1);
+    GLCall(glBindTexture(GL_TEXTURE_2D_ARRAY, m_RendererID));
 }
 
 void TextureArray::Unbind() const
 {
-    GLCall(glBindTexture(GL_TEXTURE_2D, 0));
+    GLCall(glBindTexture(GL_TEXTURE_2D_ARRAY, 0));
 }
 
 void TextureArray::SetInternalFormat(GLuint format)
@@ -35,11 +33,11 @@ void TextureArray::Resize(glm::vec3 size)
 {
     m_Size = size;
     Bind();
-    GLCall(glTexImage2D(GL_TEXTURE_2D, 0, m_InternalFormat, m_Size.x, m_Size.y, 0, m_InternalFormat, GL_UNSIGNED_BYTE, 0));
+    GLCall(glTexImage3D(GL_TEXTURE_2D_ARRAY, 0, m_InternalFormat, m_Size.x, m_Size.y, m_Size.z, 0, m_InternalFormat, GL_UNSIGNED_BYTE, 0));
 }
 
-void TextureArray::SetData(glm::vec2 pos, glm::vec2 size, unsigned char* data)
+void TextureArray::SetData(glm::vec2 pos, unsigned int layer, glm::vec2 size, unsigned char* data)
 {
     Bind();
-    GLCall(glTexSubImage2D(GL_TEXTURE_2D, 0, pos.x, pos.y, size.x, size.y, m_InternalFormat, GL_UNSIGNED_BYTE, data));
+    GLCall(glTexSubImage3D(GL_TEXTURE_2D_ARRAY, 0, pos.x, pos.y, layer, size.x, size.y, 1, m_InternalFormat, GL_UNSIGNED_BYTE, data));
 }
