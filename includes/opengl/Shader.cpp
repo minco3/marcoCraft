@@ -104,14 +104,14 @@ GLuint Shader::CompileShader()
         GLCall(glShaderSource(ShaderID, 1, &VertexSourcePointer, NULL));
         GLCall(glCompileShader(ShaderID));
         
-        GLCall(glGetShaderiv(FragmentShaderID, GL_COMPILE_STATUS, &result));
-        GLCall(glGetShaderiv(FragmentShaderID, GL_INFO_LOG_LENGTH, &InfoLogLength));
+        GLCall(glGetShaderiv(ShaderID, GL_COMPILE_STATUS, &result));
+        GLCall(glGetShaderiv(ShaderID, GL_INFO_LOG_LENGTH, &InfoLogLength));
 
         if (InfoLogLength > 0)
         {
-            std::vector<char> FragmentShaderErrorMessage(InfoLogLength+1);
-            glGetShaderInfoLog(FragmentShaderID, InfoLogLength, NULL, &FragmentShaderErrorMessage[0]);
-            std::cout << &FragmentShaderErrorMessage[0] << '\n';
+            std::vector<char> ErrorMessage(InfoLogLength+1);
+            GLCall(glGetShaderInfoLog(ShaderID, InfoLogLength, NULL, &ErrorMessage[0]));
+            std::cout << &ErrorMessage[0] << '\n';
         }
     }
 

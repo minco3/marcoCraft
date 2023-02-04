@@ -78,7 +78,7 @@ int main(int argc, char** argv) {
     cube.UpdateBuffer(glm::vec2(), glm::vec2(), glm::vec2(), glm::vec2());
 
     int x, y, bits;
-    unsigned char* dirtData = stbi_load("../res/dirt.png", &x, &y, &bits, 0);
+    unsigned char* dirtData = stbi_load("../res/dirt.png", &x, &y, &bits, 3);
 
     Texture2D dirt;
     GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE));
@@ -151,7 +151,6 @@ int main(int argc, char** argv) {
         lastTime = currentTime;
         currentTime = SDL_GetTicks64();
         float deltaTime = float(currentTime - lastTime);
-        glm::vec3 cameraVelocity;
 
         //process all events
         while (SDL_PollEvent(&event)) {
