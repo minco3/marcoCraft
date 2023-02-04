@@ -95,12 +95,24 @@ GLuint Shader::CompileShader()
     {
         GLuint ShaderID = i == 0 ? VertexShaderID : FragmentShaderID;
 
+        int InfoLogLength;
+        GLint result = GL_FALSE;
+
         std::cout << "Compiling " << (i == 0 ? "Vertex" : "Fragment") << " Shader" << std::endl;
         std::string code = ss[i].str();
         char const * VertexSourcePointer = code.c_str();
         GLCall(glShaderSource(ShaderID, 1, &VertexSourcePointer, NULL));
         GLCall(glCompileShader(ShaderID));
+        
+        GLCall(glGetShaderiv(FragmentShaderID, GL_COMPILE_STATUS, &result));
+        GLCall(glGetShaderiv(FragmentShaderID, GL_INFO_LOG_LENGTH, &InfoLogLength));
 
+        if (InfoLogLength > 0)
+        {
+            std::vector<char> FragmentShaderErrorMessage(InfoLogLength+1);
+            glGetShaderInfoLog(FragmentShaderID, InfoLogLength, NULL, &FragmentShaderErrorMessage[0]);
+            std::cout << &FragmentShaderErrorMessage[0] << '\n';
+        }
     }
 
     std::cout << "Linking program\n";

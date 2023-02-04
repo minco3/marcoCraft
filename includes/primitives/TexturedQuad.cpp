@@ -30,6 +30,6 @@ void Quad::UpdateBuffer(glm::vec2 pos, glm::vec2 size, glm::vec2 texturePos, glm
         { pos.x + size.x, pos.y,          texturePos.x+textureSize.x, texturePos.y+textureSize.y}, // 2
         { pos.x + size.x, pos.y + size.y, texturePos.x+textureSize.x, texturePos.y}  // 3
     };
-    
-    glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(float) * 4 * 4, vertices);
+    BindVB();
+    GLCall(glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(float) * 4 * 4, vertices));
 }

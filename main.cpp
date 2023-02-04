@@ -22,11 +22,13 @@
 #include "includes/opengl/VertexArray.h"
 #include "includes/opengl/IndexBuffer.h"
 #include "includes/opengl/Shader.h"
+#include "includes/opengl/Texture2D.h"
 
 #include "includes/objects/camera/camera.h"
 #include "includes/objects/text/Text.h"
 
 #include "includes/primitives/TexturedQuad.h"
+#include "includes/primitives/TexturedCube.h"
 
 int main(int argc, char** argv) {
 
@@ -65,51 +67,68 @@ int main(int argc, char** argv) {
 
     Shader SimpleShader("../res/shaders/SimpleShader.glsl");
     Shader FlatShader("../res/shaders/FlatShader.glsl");
+    Shader CubeShader("../res/shaders/CubeShader.glsl");
 
     Font font("../res/arial.ttf", 48);
 
     Quad quad;
 
+    Cube cube;
+
+    cube.UpdateBuffer(glm::vec2(), glm::vec2(), glm::vec2(), glm::vec2());
+
+    int x, y, bits;
+    unsigned char* dirtData = stbi_load("../res/dirt.png", &x, &y, &bits, 0);
+
+    Texture2D dirt;
+    GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE));
+    GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE));
+    GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST));
+    GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST));
+    dirt.SetInternalFormat(GL_RGB);
+    dirt.Resize(glm::vec2(x,y));
+    dirt.SetData(glm::vec2(0,0), glm::vec2(x,y), dirtData);
+
     Text fpsCounter(font);
     fpsCounter.setPosition(glm::vec2(100,100));
 
-    static const GLfloat vertices[8][6] = {
-        { -1.0f,-1.0f,-1.0f,    1.0f,  0.0f,  0.0f }, //0
-        { -1.0f,-1.0f, 1.0f,    0.0f,  1.0f,  0.0f }, //1
-        { -1.0f, 1.0f, 1.0f,    0.0f,  0.0f,  1.0f }, //2
-        { 1.0f, 1.0f,-1.0f,     1.0f,  1.0f,  0.0f }, //3
-        { -1.0f, 1.0f,-1.0f,    0.0f,  1.0f,  1.0f }, //4
-        { 1.0f,-1.0f, 1.0f,     1.0f,  0.0f,  1.0f }, //5
-        { 1.0f,-1.0f,-1.0f,     0.5f,  1.0f,  0.5f }, //6
-        { 1.0f, 1.0f, 1.0f,     1.0f,  0.5f,  0.5f }, //7
-    };
+    // static const GLfloat vertices[8][6] = {
+    //     { -1.0f,-1.0f,-1.0f,    1.0f,  0.0f,  0.0f }, //0
+    //     { -1.0f,-1.0f, 1.0f,    0.0f,  1.0f,  0.0f }, //1
+    //     { -1.0f, 1.0f, 1.0f,    0.0f,  0.0f,  1.0f }, //2
+    //     { 1.0f, 1.0f,-1.0f,     1.0f,  1.0f,  0.0f }, //3
+    //     { -1.0f, 1.0f,-1.0f,    0.0f,  1.0f,  1.0f }, //4
+    //     { 1.0f,-1.0f, 1.0f,     1.0f,  0.0f,  1.0f }, //5
+    //     { 1.0f,-1.0f,-1.0f,     0.5f,  1.0f,  0.5f }, //6
+    //     { 1.0f, 1.0f, 1.0f,     1.0f,  0.5f,  0.5f }, //7
+    // };
 
-    static const unsigned int indices[36] {
-        0, 1, 2,
-        3, 0, 4,
-        5, 0, 6,
-        3, 6, 0,
-        0, 2, 4,
-        5, 1, 0,
-        2, 1, 5,
-        7, 6, 3,
-        6, 7, 5, 
-        7, 3, 4,
-        7, 4, 2,
-        7, 2, 5
-    };
+    // static const unsigned int indices[36] {
+    //     0, 1, 2,
+    //     3, 0, 4,
+    //     5, 0, 6,
+    //     3, 6, 0,
+    //     0, 2, 4,
+    //     5, 1, 0,
+    //     2, 1, 5,
+    //     7, 6, 3,
+    //     6, 7, 5, 
+    //     7, 3, 4,
+    //     7, 4, 2,
+    //     7, 2, 5
+    // };
     
-    VertexArray va;
-    va.Bind();
-    VertexBuffer vb(vertices, 8*6*sizeof(float));
-    VertexBufferLayout(layout);
-    layout.Push(GL_FLOAT, 3);
-    layout.Push(GL_FLOAT, 3);
-    va.AddBuffer(vb, layout);
+    // VertexArray va;
+    // va.Bind();
+    // VertexBuffer vb(vertices, 8*6*sizeof(float));
+    // VertexBufferLayout(layout);
+    // layout.Push(GL_FLOAT, 3);
+    // layout.Push(GL_FLOAT, 3);
+    // va.AddBuffer(vb, layout);
 
-    IndexBuffer ib(indices, 36);
+    // IndexBuffer ib(indices, 36);
 
-    va.Unbind();
+    // va.Unbind();
 
     glClearColor(0.0f, 0.0f, 0.4f, 0.0f);
 
@@ -224,12 +243,21 @@ int main(int argc, char** argv) {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 
-        SimpleShader.Bind();
-        SimpleShader.SetUniformMat4fv("MVP", camera.getMVP());
+        // SimpleShader.Bind();
+        // SimpleShader.SetUniformMat4fv("MVP", camera.getMVP());
         
-        va.Bind();
+        // va.Bind();
         // ib.Bind();
-        GLCall(glDrawElements(GL_TRIANGLES, 12*3, GL_UNSIGNED_INT, 0));
+        // GLCall(glDrawElements(GL_TRIANGLES, 12*3, GL_UNSIGNED_INT, 0));
+
+        CubeShader.Bind();
+        CubeShader.SetUniformMat4fv("MVP", camera.getMVP());
+        CubeShader.SetUniform1i("textureSlot", 0);
+
+        dirt.Bind();
+
+        cube.Bind();
+        GLCall(glDrawArrays(GL_TRIANGLES, 0, cube.IndexCount()));
 
         fpsCounter.RenderText();
 
