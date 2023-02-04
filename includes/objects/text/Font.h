@@ -11,7 +11,7 @@
 
 struct Character
 {
-    glm::ivec2   AtlasCoord;
+    glm::vec2   AtlasCoord;
     glm::ivec2   Size;       // Size of glyph
     glm::ivec2   Bearing;    // Offset from baseline to left/top of glyph
     FT_Pos Advance;    // Offset to advance to next glyph
