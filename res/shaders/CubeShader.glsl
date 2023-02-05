@@ -18,10 +18,13 @@ void main()
 
 #shader fragment
 #version 330 core
+
 in vec3 textureCoords;
 in vec3 fragmentColor;
 out vec4 color;
+
 uniform sampler2DArray textureSlot;
+
 void main()
 {
     color = vec4(fragmentColor, 1.0) * texture(textureSlot, textureCoords);
