@@ -82,6 +82,7 @@ int main(int argc, char** argv) {
     unsigned char* dirtData = stbi_load("../res/dirt.png", &x, &y, &bits, 4);
     unsigned char* grassSideData = stbi_load("../res/grass_block_side.png", &x, &y, &bits, 4);
     unsigned char* grassTopData = stbi_load("../res/grass_block_top.png", &x, &y, &bits, 4);
+    unsigned char* grassOverlayData = stbi_load("../res/grass_block_side_overlay.png", &x, &y, &bits, 4);
 
     Texture2D dirt;
     GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE));
@@ -94,10 +95,11 @@ int main(int argc, char** argv) {
 
     TextureArray grass;
     grass.SetInternalFormat(GL_RGBA);
-    grass.Resize(glm::vec3(16,16,3));
+    grass.Resize(glm::vec3(16,16,4));
     grass.SetData(glm::vec2(0, 0), 0, glm::vec2(16,16), dirtData);
     grass.SetData(glm::vec2(0, 0), 1, glm::vec2(16,16), grassSideData);
     grass.SetData(glm::vec2(0, 0), 2, glm::vec2(16,16), grassTopData);
+    grass.SetData(glm::vec2(0, 0), 3, glm::vec2(16,16), grassOverlayData);
 
     Text fpsCounter(font);
     fpsCounter.setPosition(glm::vec2(100,100));

@@ -27,5 +27,21 @@ uniform sampler2DArray textureSlot;
 
 void main()
 {
-    color = vec4(fragmentColor, 1.0) * texture(textureSlot, textureCoords);
+    vec4 overlay;
+    if (textureCoords.z == 1.0)
+    {
+        overlay = texture(textureSlot, vec3(textureCoords.x, textureCoords.y, 4.0));
+        if (overlay.a == 0)
+        {
+            color = vec4(texture(textureSlot, textureCoords));
+        }
+        else
+        {
+            color = vec4(fragmentColor, 1.0) * overlay;
+        }
+    }
+    else
+    {
+        color = vec4(fragmentColor, 1.0) * texture(textureSlot, textureCoords);
+    }
 }
