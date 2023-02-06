@@ -12,6 +12,7 @@
 #include <GL/glu.h>
 #include <glm/glm.hpp>
 #include <map>
+#include <memory>
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "includes/textures/stb_image.h"
@@ -47,7 +48,7 @@ int main(int argc, char** argv) {
     SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, 0);
     SDL_GLContext context = SDL_GL_CreateContext(window);
 
-    SDL_GL_SetSwapInterval(0); // disable vsync
+    SDL_GL_SetSwapInterval(1); // disable vsync
 
     SDL_Surface* icon;
     SDL_RWops*  rwop;
@@ -60,6 +61,19 @@ int main(int argc, char** argv) {
 
     {
 
+    Model stoneBlock = {0,0,0,0,0,0,-1};
+    Model dirtBlock = {1,1,1,1,1,1,-1};
+    Model grassBlock = {2,2,2,2,3,1,4};
+    Model glassBlock = {5,5,5,5,5,5,-1};
+
+    std::vector<std::shared_ptr<Cube>> solidBlocks, grassBlocks, transparentBlocks;
+
+    const int blocks[5] = {1,2,3,4,0};
+
+    const std::map<int, Model> models = {
+        {1, stoneBlock}, {2, dirtBlock}, {3, grassBlock}, {4,glassBlock}
+    };
+
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_CULL_FACE);
     glDepthFunc(GL_LESS);
@@ -69,6 +83,8 @@ int main(int argc, char** argv) {
     Shader SimpleShader("../res/shaders/SimpleShader.glsl");
     Shader FlatShader("../res/shaders/FlatShader.glsl");
     Shader CubeShader("../res/shaders/CubeShader.glsl");
+    Shader GrassShader("../res/shaders/GrassShader.glsl");
+    Shader TransparentShader("../res/shaders/TransparentShader.glsl");
 
     Font font("../res/arial.ttf", 48);
 
@@ -76,35 +92,35 @@ int main(int argc, char** argv) {
 
     Cube cube;
 
-    cube.UpdateBuffer(glm::vec2(), glm::vec2(), glm::vec2(), glm::vec2());
+    cube.UpdateBuffer(glm::vec3(), glm::vec3(), glm::vec2(), glm::vec2(), models.at(1));
 
     int x, y, bits;
+    unsigned char* stoneData = stbi_load("../res/stone.png", &x, &y, &bits, 4);
     unsigned char* dirtData = stbi_load("../res/dirt.png", &x, &y, &bits, 4);
     unsigned char* grassSideData = stbi_load("../res/grass_block_side.png", &x, &y, &bits, 4);
     unsigned char* grassTopData = stbi_load("../res/grass_block_top.png", &x, &y, &bits, 4);
     unsigned char* grassOverlayData = stbi_load("../res/grass_block_side_overlay.png", &x, &y, &bits, 4);
+    unsigned char* glassData = stbi_load("../res/glass.png", &x, &y, &bits, 4);
 
-    Texture2D dirt;
     GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE));
     GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE));
     GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST));
     GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST));
-    dirt.SetInternalFormat(GL_RGBA);
-    dirt.Resize(glm::vec2(x,y));
-    dirt.SetData(glm::vec2(0,0), glm::vec2(x,y), dirtData);
+    GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 4));
 
-    TextureArray grass;
-    grass.SetInternalFormat(GL_RGBA);
-    grass.Resize(glm::vec3(16,16,4));
-    grass.SetData(glm::vec2(0, 0), 0, glm::vec2(16,16), dirtData);
-    grass.SetData(glm::vec2(0, 0), 1, glm::vec2(16,16), grassSideData);
-    grass.SetData(glm::vec2(0, 0), 2, glm::vec2(16,16), grassTopData);
-    grass.SetData(glm::vec2(0, 0), 3, glm::vec2(16,16), grassOverlayData);
+    TextureArray textureArray;
+    textureArray.SetInternalFormat(GL_RGBA);
+    textureArray.Resize(glm::vec3(16,16,6));
+    textureArray.SetData(glm::vec2(0, 0), 0, glm::vec2(16,16), stoneData);
+    textureArray.SetData(glm::vec2(0, 0), 1, glm::vec2(16,16), dirtData);
+    textureArray.SetData(glm::vec2(0, 0), 2, glm::vec2(16,16), grassSideData);
+    textureArray.SetData(glm::vec2(0, 0), 3, glm::vec2(16,16), grassTopData);
+    textureArray.SetData(glm::vec2(0, 0), 4, glm::vec2(16,16), grassOverlayData);
+    textureArray.SetData(glm::vec2(0, 0), 5, glm::vec2(16,16), glassData);
     GLCall(glGenerateMipmap(GL_TEXTURE_2D_ARRAY));
 
-
     Text fpsCounter(font);
-    fpsCounter.setPosition(glm::vec2(100,100));
+    fpsCounter.setPosition(glm::vec2(100,height-100));
 
     static const GLfloat vertices[8][6] = {
         { -1.0f,-1.0f,-1.0f,    1.0f,  0.0f,  0.0f }, //0
@@ -131,7 +147,7 @@ int main(int argc, char** argv) {
         7, 4, 2,
         7, 2, 5
     };
-    
+
     VertexArray va;
     va.Bind();
     VertexBuffer vb(vertices, 8*6*sizeof(float));
@@ -160,6 +176,28 @@ int main(int argc, char** argv) {
 
     std::chrono::high_resolution_clock::time_point p1, p2;
     std::chrono::duration<double> duration;
+
+    for (int i=0; i<5; i++)
+    {
+        if (!blocks[i]) continue;
+
+        std::shared_ptr<Cube> c(new Cube);
+        c->UpdateBuffer(glm::vec3(0, i, 0), glm::vec3(1, 1, 1), glm::vec2(), glm::vec2(), models.at(blocks[i]));
+
+        if (blocks[i] == 1 || blocks[i] == 2) // stone / dirt
+        {
+            solidBlocks.push_back(std::move(c));
+        }
+        else if (blocks[i] == 3) // grass
+        {
+            grassBlocks.push_back(std::move(c));
+        }
+        else
+        {
+            transparentBlocks.push_back(std::move(c));
+        }
+
+    }
 
     while (running) {
         lastTime = currentTime;
@@ -258,21 +296,46 @@ int main(int argc, char** argv) {
 
         SimpleShader.Bind();
         SimpleShader.SetUniformMat4fv("MVP", camera.getMVP());
-        
+
         va.Bind();
         ib.Bind();
         GLCall(glDrawElements(GL_TRIANGLES, 12*3, GL_UNSIGNED_INT, 0));
+
+        textureArray.Bind();
 
         CubeShader.Bind();
         CubeShader.SetUniformMat4fv("MVP", camera.getMVP());
         CubeShader.SetUniform1i("textureSlot", 1);
 
-        grass.Bind();
+        for (const auto& b : solidBlocks)
+        {
+            b->Bind();
+            GLCall(glDrawArrays(GL_TRIANGLES, 0, b->IndexCount()));
+        }
 
-        cube.Bind();
-        GLCall(glDrawArrays(GL_TRIANGLES, 0, cube.IndexCount()));
+        GrassShader.Bind();
+        GrassShader.SetUniformMat4fv("MVP", camera.getMVP());
+        GrassShader.SetUniform1i("textureSlot", 1);
 
-        fpsCounter.RenderText();
+        for (const auto& b : grassBlocks)
+        {
+            b->Bind();
+            GLCall(glDrawArrays(GL_TRIANGLES, 0, b->IndexCount()));
+        }
+
+        TransparentShader.Bind();
+        TransparentShader.SetUniformMat4fv("MVP", camera.getMVP());
+        TransparentShader.SetUniform1i("textureSlot", 1);
+
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+        for (const auto& b : transparentBlocks)
+        {
+            b->Bind();
+            GLCall(glDrawArrays(GL_TRIANGLES, 0, b->IndexCount()));
+        }
+
+        glBlendFunc(GL_ONE, GL_ZERO);
 
         if (debug_fps) {
             if (fpsProfileFrame % 128 == 0) {

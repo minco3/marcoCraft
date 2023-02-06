@@ -12,61 +12,61 @@ Cube::Cube()
     m_VertexArray.AddBuffer(m_VertexBuffer, layout);
 }
 
-void Cube::Bind()
+void Cube::Bind() const
 {
     m_VertexArray.Bind();
 }
 
-void Cube::BindVB()
+void Cube::BindVB() const
 {
     m_VertexBuffer.Bind();
 }
 
-void Cube::UpdateBuffer(glm::vec2 pos, glm::vec2 size, glm::vec2 texturePos, glm::vec2 textureSize)
+void Cube::UpdateBuffer(glm::vec3 pos, glm::vec3 size, glm::vec2 texturePos, glm::vec2 textureSize, const Model& m)
 {
     float vertices[36][9] = { // cube between 0 and 1
         // face 1
-        { 0.0f, 0.0f, 0.0f,  0.6f, 0.8f, 0.4f,  0.0f, 1.0f, 1.0f}, //0
-        { 0.0f, 0.0f, 1.0f,  0.6f, 0.8f, 0.4f,  1.0f, 1.0f, 1.0f}, //1
-        { 0.0f, 1.0f, 1.0f,  0.6f, 0.8f, 0.4f,  1.0f, 0.0f, 1.0f}, //2
-        { 0.0f, 0.0f, 0.0f,  0.6f, 0.8f, 0.4f,  0.0f, 1.0f, 1.0f}, //0
-        { 0.0f, 1.0f, 1.0f,  0.6f, 0.8f, 0.4f,  1.0f, 0.0f, 1.0f}, //2
-        { 0.0f, 1.0f, 0.0f,  0.6f, 0.8f, 0.4f,  0.0f, 0.0f, 1.0f}, //4
+        { pos.x+0.0f, pos.y+0.0f, pos.z+0.0f,  0.6f, 0.8f, 0.4f,  0.0f, 1.0f, (float)m.front}, //0
+        { pos.x+0.0f, pos.y+0.0f, pos.z+1.0f,  0.6f, 0.8f, 0.4f,  1.0f, 1.0f, (float)m.front}, //1
+        { pos.x+0.0f, pos.y+1.0f, pos.z+1.0f,  0.6f, 0.8f, 0.4f,  1.0f, 0.0f, (float)m.front}, //2
+        { pos.x+0.0f, pos.y+0.0f, pos.z+0.0f,  0.6f, 0.8f, 0.4f,  0.0f, 1.0f, (float)m.front}, //0
+        { pos.x+0.0f, pos.y+1.0f, pos.z+1.0f,  0.6f, 0.8f, 0.4f,  1.0f, 0.0f, (float)m.front}, //2
+        { pos.x+0.0f, pos.y+1.0f, pos.z+0.0f,  0.6f, 0.8f, 0.4f,  0.0f, 0.0f, (float)m.front}, //4
         // face 2 (bottom)
-        { 1.0f, 0.0f, 1.0f,  1.0f, 1.0f, 1.0f,  1.0f, 0.0f, 0.0f}, //5
-        { 0.0f, 0.0f, 0.0f,  1.0f, 1.0f, 1.0f,  0.0f, 1.0f, 0.0f}, //0
-        { 1.0f, 0.0f, 0.0f,  1.0f, 1.0f, 1.0f,  1.0f, 1.0f, 0.0f}, //6
-        { 1.0f, 0.0f, 1.0f,  1.0f, 1.0f, 1.0f,  1.0f, 0.0f, 0.0f}, //5
-        { 0.0f, 0.0f, 1.0f,  1.0f, 1.0f, 1.0f,  0.0f, 0.0f, 0.0f}, //1
-        { 0.0f, 0.0f, 0.0f,  1.0f, 1.0f, 1.0f,  0.0f, 1.0f, 0.0f}, //0
+        { pos.x+1.0f, pos.y+0.0f, pos.z+1.0f,  1.0f, 1.0f, 1.0f,  1.0f, 0.0f, (float)m.bottom}, //5
+        { pos.x+0.0f, pos.y+0.0f, pos.z+0.0f,  1.0f, 1.0f, 1.0f,  0.0f, 1.0f, (float)m.bottom}, //0
+        { pos.x+1.0f, pos.y+0.0f, pos.z+0.0f,  1.0f, 1.0f, 1.0f,  1.0f, 1.0f, (float)m.bottom}, //6
+        { pos.x+1.0f, pos.y+0.0f, pos.z+1.0f,  1.0f, 1.0f, 1.0f,  1.0f, 0.0f, (float)m.bottom}, //5
+        { pos.x+0.0f, pos.y+0.0f, pos.z+1.0f,  1.0f, 1.0f, 1.0f,  0.0f, 0.0f, (float)m.bottom}, //1
+        { pos.x+0.0f, pos.y+0.0f, pos.z+0.0f,  1.0f, 1.0f, 1.0f,  0.0f, 1.0f, (float)m.bottom}, //0
         // face 3
-        { 1.0f, 1.0f, 0.0f,  0.6f, 0.8f, 0.4f,  1.0f, 0.0f, 1.0f}, //3
-        { 1.0f, 0.0f, 0.0f,  0.6f, 0.8f, 0.4f,  1.0f, 1.0f, 1.0f}, //6
-        { 0.0f, 0.0f, 0.0f,  0.6f, 0.8f, 0.4f,  0.0f, 1.0f, 1.0f}, //0
-        { 1.0f, 1.0f, 0.0f,  0.6f, 0.8f, 0.4f,  1.0f, 0.0f, 1.0f}, //3
-        { 0.0f, 0.0f, 0.0f,  0.6f, 0.8f, 0.4f,  0.0f, 1.0f, 1.0f}, //0
-        { 0.0f, 1.0f, 0.0f,  0.6f, 0.8f, 0.4f,  0.0f, 0.0f, 1.0f}, //4
+        { pos.x+1.0f, pos.y+1.0f, pos.z+0.0f,  0.6f, 0.8f, 0.4f,  1.0f, 0.0f, (float)m.left}, //3
+        { pos.x+1.0f, pos.y+0.0f, pos.z+0.0f,  0.6f, 0.8f, 0.4f,  1.0f, 1.0f, (float)m.left}, //6
+        { pos.x+0.0f, pos.y+0.0f, pos.z+0.0f,  0.6f, 0.8f, 0.4f,  0.0f, 1.0f, (float)m.left}, //0
+        { pos.x+1.0f, pos.y+1.0f, pos.z+0.0f,  0.6f, 0.8f, 0.4f,  1.0f, 0.0f, (float)m.left}, //3
+        { pos.x+0.0f, pos.y+0.0f, pos.z+0.0f,  0.6f, 0.8f, 0.4f,  0.0f, 1.0f, (float)m.left}, //0
+        { pos.x+0.0f, pos.y+1.0f, pos.z+0.0f,  0.6f, 0.8f, 0.4f,  0.0f, 0.0f, (float)m.left}, //4
         // face 4
-        { 1.0f, 1.0f, 1.0f,  0.6f, 0.8f, 0.4f,  1.0f, 0.0f, 1.0f}, //7
-        { 1.0f, 0.0f, 0.0f,  0.6f, 0.8f, 0.4f,  0.0f, 1.0f, 1.0f}, //6
-        { 1.0f, 1.0f, 0.0f,  0.6f, 0.8f, 0.4f,  0.0f, 0.0f, 1.0f}, //3
-        { 1.0f, 0.0f, 0.0f,  0.6f, 0.8f, 0.4f,  0.0f, 1.0f, 1.0f}, //6
-        { 1.0f, 1.0f, 1.0f,  0.6f, 0.8f, 0.4f,  1.0f, 0.0f, 1.0f}, //7
-        { 1.0f, 0.0f, 1.0f,  0.6f, 0.8f, 0.4f,  1.0f, 1.0f, 1.0f}, //5
+        { pos.x+1.0f, pos.y+1.0f, pos.z+1.0f,  0.6f, 0.8f, 0.4f,  1.0f, 0.0f, (float)m.right}, //7
+        { pos.x+1.0f, pos.y+0.0f, pos.z+0.0f,  0.6f, 0.8f, 0.4f,  0.0f, 1.0f, (float)m.right}, //6
+        { pos.x+1.0f, pos.y+1.0f, pos.z+0.0f,  0.6f, 0.8f, 0.4f,  0.0f, 0.0f, (float)m.right}, //3
+        { pos.x+1.0f, pos.y+0.0f, pos.z+0.0f,  0.6f, 0.8f, 0.4f,  0.0f, 1.0f, (float)m.right}, //6
+        { pos.x+1.0f, pos.y+1.0f, pos.z+1.0f,  0.6f, 0.8f, 0.4f,  1.0f, 0.0f, (float)m.right}, //7
+        { pos.x+1.0f, pos.y+0.0f, pos.z+1.0f,  0.6f, 0.8f, 0.4f,  1.0f, 1.0f, (float)m.right}, //5
         // face 5
-        { 0.0f, 1.0f, 1.0f,  0.6f, 0.8f, 0.4f,  0.0f, 0.0f, 1.0f}, //2
-        { 0.0f, 0.0f, 1.0f,  0.6f, 0.8f, 0.4f,  0.0f, 1.0f, 1.0f}, //1
-        { 1.0f, 0.0f, 1.0f,  0.6f, 0.8f, 0.4f,  1.0f, 1.0f, 1.0f}, //5
-        { 1.0f, 1.0f, 1.0f,  0.6f, 0.8f, 0.4f,  1.0f, 0.0f, 1.0f}, //7
-        { 0.0f, 1.0f, 1.0f,  0.6f, 0.8f, 0.4f,  0.0f, 0.0f, 1.0f}, //2
-        { 1.0f, 0.0f, 1.0f,  0.6f, 0.8f, 0.4f,  1.0f, 1.0f, 1.0f}, //5
+        { pos.x+0.0f, pos.y+1.0f, pos.z+1.0f,  0.6f, 0.8f, 0.4f,  0.0f, 0.0f, (float)m.back}, //2
+        { pos.x+0.0f, pos.y+0.0f, pos.z+1.0f,  0.6f, 0.8f, 0.4f,  0.0f, 1.0f, (float)m.back}, //1
+        { pos.x+1.0f, pos.y+0.0f, pos.z+1.0f,  0.6f, 0.8f, 0.4f,  1.0f, 1.0f, (float)m.back}, //5
+        { pos.x+1.0f, pos.y+1.0f, pos.z+1.0f,  0.6f, 0.8f, 0.4f,  1.0f, 0.0f, (float)m.back}, //7
+        { pos.x+0.0f, pos.y+1.0f, pos.z+1.0f,  0.6f, 0.8f, 0.4f,  0.0f, 0.0f, (float)m.back}, //2
+        { pos.x+1.0f, pos.y+0.0f, pos.z+1.0f,  0.6f, 0.8f, 0.4f,  1.0f, 1.0f, (float)m.back}, //5
         // face 6 (top)
-        { 1.0f, 1.0f, 1.0f,  0.6f, 0.8f, 0.4f,  1.0f, 0.0f, 2.0f}, //7
-        { 1.0f, 1.0f, 0.0f,  0.6f, 0.8f, 0.4f,  1.0f, 1.0f, 2.0f}, //3
-        { 0.0f, 1.0f, 0.0f,  0.6f, 0.8f, 0.4f,  0.0f, 1.0f, 2.0f}, //4
-        { 1.0f, 1.0f, 1.0f,  0.6f, 0.8f, 0.4f,  1.0f, 0.0f, 2.0f}, //7
-        { 0.0f, 1.0f, 0.0f,  0.6f, 0.8f, 0.4f,  0.0f, 1.0f, 2.0f}, //4
-        { 0.0f, 1.0f, 1.0f,  0.6f, 0.8f, 0.4f,  0.0f, 0.0f, 2.0f}, //2
+        { pos.x+1.0f, pos.y+1.0f, pos.z+1.0f,  0.6f, 0.8f, 0.4f,  1.0f, 0.0f, (float)m.top}, //7
+        { pos.x+1.0f, pos.y+1.0f, pos.z+0.0f,  0.6f, 0.8f, 0.4f,  1.0f, 1.0f, (float)m.top}, //3
+        { pos.x+0.0f, pos.y+1.0f, pos.z+0.0f,  0.6f, 0.8f, 0.4f,  0.0f, 1.0f, (float)m.top}, //4
+        { pos.x+1.0f, pos.y+1.0f, pos.z+1.0f,  0.6f, 0.8f, 0.4f,  1.0f, 0.0f, (float)m.top}, //7
+        { pos.x+0.0f, pos.y+1.0f, pos.z+0.0f,  0.6f, 0.8f, 0.4f,  0.0f, 1.0f, (float)m.top}, //4
+        { pos.x+0.0f, pos.y+1.0f, pos.z+1.0f,  0.6f, 0.8f, 0.4f,  0.0f, 0.0f, (float)m.top}, //2
     };
     
     // { 0.0f, 0.0f, 0.0f,  1.0f, 0.0f}, //0

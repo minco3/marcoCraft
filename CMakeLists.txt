@@ -24,6 +24,7 @@ find_package(GLEW)
 find_package(freeglut)
 find_package(SDL2)
 find_package(Freetype)
+find_package(msgpack)
 
 include_directories("C:/msys64/mingw64/include/freetype2")
 message(STATUS ${INCLUDE_DIRECTORIES})
