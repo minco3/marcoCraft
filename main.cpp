@@ -43,7 +43,6 @@ int main(int argc, char** argv) {
     SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 4);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
 
-
     SDL_Window* window = SDL_CreateWindow("Marcocraft", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, width, height, SDL_WINDOW_SHOWN | SDL_WINDOW_OPENGL);
     SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, 0);
     SDL_GLContext context = SDL_GL_CreateContext(window);
@@ -61,17 +60,17 @@ int main(int argc, char** argv) {
 
     {
 
-    Model stoneBlock = {0,0,0,0,0,0,-1};
-    Model dirtBlock = {1,1,1,1,1,1,-1};
-    Model grassBlock = {2,2,2,2,3,1,4};
-    Model glassBlock = {5,5,5,5,5,5,-1};
+    Model stoneBlock = {0,0,0,0,0,0};
+    Model dirtBlock = {1,1,1,1,1,1};
+    Model grassBlock = {2,2,2,2,3,1};
+    Model glassBlock = {5,5,5,5,5,5};
 
     std::vector<std::shared_ptr<Cube>> solidBlocks, grassBlocks, transparentBlocks;
 
-    const int blocks[5] = {1,2,3,4,0};
+    const std::vector<int> blocks = {1,1,2,3,0,4,0};
 
     const std::map<int, Model> models = {
-        {1, stoneBlock}, {2, dirtBlock}, {3, grassBlock}, {4,glassBlock}
+        {1, stoneBlock}, {2, dirtBlock}, {3, grassBlock}, {4, glassBlock}
     };
 
     glEnable(GL_DEPTH_TEST);
@@ -177,7 +176,7 @@ int main(int argc, char** argv) {
     std::chrono::high_resolution_clock::time_point p1, p2;
     std::chrono::duration<double> duration;
 
-    for (int i=0; i<5; i++)
+    for (int i = 0; i<blocks.size(); i++)
     {
         if (!blocks[i]) continue;
 
