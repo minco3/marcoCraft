@@ -67,7 +67,12 @@ int main(int argc, char** argv) {
 
     std::vector<std::shared_ptr<Cube>> solidBlocks, grassBlocks, transparentBlocks;
 
-    const std::vector<int> blocks = {1,1,2,3,0,4,0};
+    std::array<std::array<std::array<int, 16>, 16>, 16> world;
+
+    for (int x=0; x<16; x++)
+    {
+        
+    }
 
     const std::map<int, Model> models = {
         {1, stoneBlock}, {2, dirtBlock}, {3, grassBlock}, {4, glassBlock}
@@ -196,6 +201,14 @@ int main(int argc, char** argv) {
             transparentBlocks.push_back(std::move(c));
         }
 
+    }
+
+    for (int x=0; x<floor.size(); x++)
+    {
+        for (int y=0; y<floor[x].size(); y++)
+        {
+
+        }
     }
 
     while (running) {
