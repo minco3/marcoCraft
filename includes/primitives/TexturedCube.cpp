@@ -69,6 +69,11 @@ void Cube::UpdateBuffer(glm::vec3 pos, glm::vec3 size, glm::vec2 texturePos, glm
         { pos.x+0.0f, pos.y+1.0f, pos.z+1.0f,  0.6f, 0.8f, 0.4f,  0.0f, 0.0f, (float)m.top}, //2
     };
     
+    BindVB();
+    GLCall(glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(float) * 9 * 36, vertices));
+}
+
+
     // { 0.0f, 0.0f, 0.0f,  1.0f, 0.0f}, //0
     // { 0.0f, 0.0f, 1.0f,  0.0f, 1.0f}, //1
     // { 0.0f, 1.0f, 1.0f,  0.0f, 0.0f}, //2
@@ -77,7 +82,3 @@ void Cube::UpdateBuffer(glm::vec3 pos, glm::vec3 size, glm::vec2 texturePos, glm
     // { 1.0f, 0.0f, 1.0f,  1.0f, 0.0f}, //5
     // { 1.0f, 0.0f, 0.0f,  0.5f, 1.0f}, //6
     // { 1.0f, 1.0f, 1.0f,  1.0f, 0.5f}, //7
-
-    BindVB();
-    GLCall(glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(float) * 9 * 36, vertices));
-}

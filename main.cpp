@@ -48,7 +48,7 @@ int main(int argc, char** argv) {
     SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, 0);
     SDL_GLContext context = SDL_GL_CreateContext(window);
 
-    SDL_GL_SetSwapInterval(1); // disable vsync
+    SDL_GL_SetSwapInterval(0); // disable vsync
 
     SDL_Surface* icon;
     SDL_RWops*  rwop;
@@ -161,6 +161,79 @@ int main(int argc, char** argv) {
 
     std::chrono::high_resolution_clock::time_point p1, p2;
     std::chrono::duration<double> duration;
+
+    int offset = 0;
+
+    VertexArray va;
+
+    VertexBuffer vb(64*64*4*9*36*sizeof(float));
+    vb.Bind();
+
+    for (int x=0; x<64; x++)
+    {
+        for (int z=0; z<64; z++)
+        {
+            for (int y=0; y<4; y++)
+            {
+                glm::vec3 pos(x,y,z);
+                Model m = models.at(1);
+                float vertices[36][9] = { // cube between 0 and 1
+                // face 1
+                { pos.x+0.0f, pos.y+0.0f, pos.z+0.0f,  0.6f, 0.8f, 0.4f,  0.0f, 1.0f, (float)m.front}, //0
+                { pos.x+0.0f, pos.y+0.0f, pos.z+1.0f,  0.6f, 0.8f, 0.4f,  1.0f, 1.0f, (float)m.front}, //1
+                { pos.x+0.0f, pos.y+1.0f, pos.z+1.0f,  0.6f, 0.8f, 0.4f,  1.0f, 0.0f, (float)m.front}, //2
+                { pos.x+0.0f, pos.y+0.0f, pos.z+0.0f,  0.6f, 0.8f, 0.4f,  0.0f, 1.0f, (float)m.front}, //0
+                { pos.x+0.0f, pos.y+1.0f, pos.z+1.0f,  0.6f, 0.8f, 0.4f,  1.0f, 0.0f, (float)m.front}, //2
+                { pos.x+0.0f, pos.y+1.0f, pos.z+0.0f,  0.6f, 0.8f, 0.4f,  0.0f, 0.0f, (float)m.front}, //4
+                // face 2 (bottom)
+                { pos.x+1.0f, pos.y+0.0f, pos.z+1.0f,  1.0f, 1.0f, 1.0f,  1.0f, 0.0f, (float)m.bottom}, //5
+                { pos.x+0.0f, pos.y+0.0f, pos.z+0.0f,  1.0f, 1.0f, 1.0f,  0.0f, 1.0f, (float)m.bottom}, //0
+                { pos.x+1.0f, pos.y+0.0f, pos.z+0.0f,  1.0f, 1.0f, 1.0f,  1.0f, 1.0f, (float)m.bottom}, //6
+                { pos.x+1.0f, pos.y+0.0f, pos.z+1.0f,  1.0f, 1.0f, 1.0f,  1.0f, 0.0f, (float)m.bottom}, //5
+                { pos.x+0.0f, pos.y+0.0f, pos.z+1.0f,  1.0f, 1.0f, 1.0f,  0.0f, 0.0f, (float)m.bottom}, //1
+                { pos.x+0.0f, pos.y+0.0f, pos.z+0.0f,  1.0f, 1.0f, 1.0f,  0.0f, 1.0f, (float)m.bottom}, //0
+                // face 3
+                { pos.x+1.0f, pos.y+1.0f, pos.z+0.0f,  0.6f, 0.8f, 0.4f,  1.0f, 0.0f, (float)m.left}, //3
+                { pos.x+1.0f, pos.y+0.0f, pos.z+0.0f,  0.6f, 0.8f, 0.4f,  1.0f, 1.0f, (float)m.left}, //6
+                { pos.x+0.0f, pos.y+0.0f, pos.z+0.0f,  0.6f, 0.8f, 0.4f,  0.0f, 1.0f, (float)m.left}, //0
+                { pos.x+1.0f, pos.y+1.0f, pos.z+0.0f,  0.6f, 0.8f, 0.4f,  1.0f, 0.0f, (float)m.left}, //3
+                { pos.x+0.0f, pos.y+0.0f, pos.z+0.0f,  0.6f, 0.8f, 0.4f,  0.0f, 1.0f, (float)m.left}, //0
+                { pos.x+0.0f, pos.y+1.0f, pos.z+0.0f,  0.6f, 0.8f, 0.4f,  0.0f, 0.0f, (float)m.left}, //4
+                // face 4
+                { pos.x+1.0f, pos.y+1.0f, pos.z+1.0f,  0.6f, 0.8f, 0.4f,  1.0f, 0.0f, (float)m.right}, //7
+                { pos.x+1.0f, pos.y+0.0f, pos.z+0.0f,  0.6f, 0.8f, 0.4f,  0.0f, 1.0f, (float)m.right}, //6
+                { pos.x+1.0f, pos.y+1.0f, pos.z+0.0f,  0.6f, 0.8f, 0.4f,  0.0f, 0.0f, (float)m.right}, //3
+                { pos.x+1.0f, pos.y+0.0f, pos.z+0.0f,  0.6f, 0.8f, 0.4f,  0.0f, 1.0f, (float)m.right}, //6
+                { pos.x+1.0f, pos.y+1.0f, pos.z+1.0f,  0.6f, 0.8f, 0.4f,  1.0f, 0.0f, (float)m.right}, //7
+                { pos.x+1.0f, pos.y+0.0f, pos.z+1.0f,  0.6f, 0.8f, 0.4f,  1.0f, 1.0f, (float)m.right}, //5
+                // face 5
+                { pos.x+0.0f, pos.y+1.0f, pos.z+1.0f,  0.6f, 0.8f, 0.4f,  0.0f, 0.0f, (float)m.back}, //2
+                { pos.x+0.0f, pos.y+0.0f, pos.z+1.0f,  0.6f, 0.8f, 0.4f,  0.0f, 1.0f, (float)m.back}, //1
+                { pos.x+1.0f, pos.y+0.0f, pos.z+1.0f,  0.6f, 0.8f, 0.4f,  1.0f, 1.0f, (float)m.back}, //5
+                { pos.x+1.0f, pos.y+1.0f, pos.z+1.0f,  0.6f, 0.8f, 0.4f,  1.0f, 0.0f, (float)m.back}, //7
+                { pos.x+0.0f, pos.y+1.0f, pos.z+1.0f,  0.6f, 0.8f, 0.4f,  0.0f, 0.0f, (float)m.back}, //2
+                { pos.x+1.0f, pos.y+0.0f, pos.z+1.0f,  0.6f, 0.8f, 0.4f,  1.0f, 1.0f, (float)m.back}, //5
+                // face 6 (top)
+                { pos.x+1.0f, pos.y+1.0f, pos.z+1.0f,  0.6f, 0.8f, 0.4f,  1.0f, 0.0f, (float)m.top}, //7
+                { pos.x+1.0f, pos.y+1.0f, pos.z+0.0f,  0.6f, 0.8f, 0.4f,  1.0f, 1.0f, (float)m.top}, //3
+                { pos.x+0.0f, pos.y+1.0f, pos.z+0.0f,  0.6f, 0.8f, 0.4f,  0.0f, 1.0f, (float)m.top}, //4
+                { pos.x+1.0f, pos.y+1.0f, pos.z+1.0f,  0.6f, 0.8f, 0.4f,  1.0f, 0.0f, (float)m.top}, //7
+                { pos.x+0.0f, pos.y+1.0f, pos.z+0.0f,  0.6f, 0.8f, 0.4f,  0.0f, 1.0f, (float)m.top}, //4
+                { pos.x+0.0f, pos.y+1.0f, pos.z+1.0f,  0.6f, 0.8f, 0.4f,  0.0f, 0.0f, (float)m.top}, //2
+                };
+                int offset = x*64*4*9*36*sizeof(float) + z*4*9*36*sizeof(float) + y*9*36*sizeof(float);
+                GLCall(glBufferSubData(GL_ARRAY_BUFFER, offset, sizeof(float) * 9 * 36, vertices));
+            }
+        }        
+    }
+
+    VertexBufferLayout layout;
+    layout.Push(GL_FLOAT, 3);
+    layout.Push(GL_FLOAT, 3);
+    layout.Push(GL_FLOAT, 3);
+
+    va.AddBuffer(vb, layout);
+    
 
     for (int i=0; i<world.size(); i++)
     {
@@ -291,29 +364,39 @@ int main(int argc, char** argv) {
 
         textureArray.Bind();
 
+
+
+        // CubeShader.Bind();
+        // CubeShader.SetUniformMat4fv("MVP", camera.getMVP());
+        // CubeShader.SetUniform1i("textureSlot", 1);
+
+        // for (const auto& b : solidBlocks)
+        // {
+        //     b->Bind();
+        //     GLCall(glDrawArrays(GL_TRIANGLES, 0, b->IndexCount()));
+        // }
+
+        // GrassShader.Bind();
+        // GrassShader.SetUniformMat4fv("MVP", camera.getMVP());
+        // GrassShader.SetUniform1i("textureSlot", 1);
+
+        // for (const auto& b : grassBlocks)
+        // {
+        //     b->Bind();
+        //     GLCall(glDrawArrays(GL_TRIANGLES, 0, b->IndexCount()));
+        // }
+
+        // TransparentShader.Bind();
+        // TransparentShader.SetUniformMat4fv("MVP", camera.getMVP());
+        // TransparentShader.SetUniform1i("textureSlot", 1);
+
         CubeShader.Bind();
         CubeShader.SetUniformMat4fv("MVP", camera.getMVP());
         CubeShader.SetUniform1i("textureSlot", 1);
 
-        for (const auto& b : solidBlocks)
-        {
-            b->Bind();
-            GLCall(glDrawArrays(GL_TRIANGLES, 0, b->IndexCount()));
-        }
+        va.Bind();
 
-        GrassShader.Bind();
-        GrassShader.SetUniformMat4fv("MVP", camera.getMVP());
-        GrassShader.SetUniform1i("textureSlot", 1);
-
-        for (const auto& b : grassBlocks)
-        {
-            b->Bind();
-            GLCall(glDrawArrays(GL_TRIANGLES, 0, b->IndexCount()));
-        }
-
-        TransparentShader.Bind();
-        TransparentShader.SetUniformMat4fv("MVP", camera.getMVP());
-        TransparentShader.SetUniform1i("textureSlot", 1);
+        GLCall(glDrawArrays(GL_TRIANGLES, 0, 36*4*64*64));
 
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
