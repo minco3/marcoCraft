@@ -13,6 +13,7 @@
 #include <glm/glm.hpp>
 #include <map>
 #include <memory>
+#include <array>
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "includes/textures/stb_image.h"
@@ -67,11 +68,29 @@ int main(int argc, char** argv) {
 
     std::vector<std::shared_ptr<Cube>> solidBlocks, grassBlocks, transparentBlocks;
 
-    std::array<std::array<std::array<int, 16>, 16>, 16> world;
 
-    for (int x=0; x<16; x++)
+    typedef std::array<std::array<std::array<int, 16>, 16>, 16> chunk;
+
+    std::array<std::array<chunk, 4>, 4> world;
+
+    for (int i=0; i<world.size(); i++)
     {
-        
+        for (int j=0; j<world[i].size(); j++)
+        {
+            for (int x=0; x<16; x++)
+            {
+                for (int z=0; z<16; z++)
+                {  
+                    world[i][j][x][0][z] = 1;
+                    world[i][j][x][1][z] = 2;
+                    world[i][j][x][2][z] = 3;
+                    for (int y=3; y<16; y++)
+                    {
+                        world[i][j][x][y][z] = 0;
+                    }
+                }
+            }
+        }
     }
 
     const std::map<int, Model> models = {
@@ -126,46 +145,7 @@ int main(int argc, char** argv) {
     Text fpsCounter(font);
     fpsCounter.setPosition(glm::vec2(100,height-100));
 
-    static const GLfloat vertices[8][6] = {
-        { -1.0f,-1.0f,-1.0f,    1.0f,  0.0f,  0.0f }, //0
-        { -1.0f,-1.0f, 0.0f,    0.0f,  1.0f,  0.0f }, //1
-        { -1.0f, 0.0f, 0.0f,    0.0f,  0.0f,  1.0f }, //2
-        { 0.0f, 0.0f,-1.0f,     1.0f,  1.0f,  0.0f }, //3
-        { -1.0f, 0.0f,-1.0f,    0.0f,  1.0f,  1.0f }, //4
-        { 0.0f,-1.0f, 0.0f,     1.0f,  0.0f,  1.0f }, //5
-        { 0.0f,-1.0f,-1.0f,     0.5f,  1.0f,  0.5f }, //6
-        { 0.0f, 0.0f, 0.0f,     1.0f,  0.5f,  0.5f }, //7
-    };
-
-    static const unsigned int indices[36] {
-        0, 1, 2,
-        3, 0, 4,
-        5, 0, 6,
-        3, 6, 0,
-        0, 2, 4,
-        5, 1, 0,
-        2, 1, 5,
-        7, 6, 3,
-        6, 7, 5, 
-        7, 3, 4,
-        7, 4, 2,
-        7, 2, 5
-    };
-
-    VertexArray va;
-    va.Bind();
-    VertexBuffer vb(vertices, 8*6*sizeof(float));
-    VertexBufferLayout(layout);
-    layout.Push(GL_FLOAT, 3);
-    layout.Push(GL_FLOAT, 3);
-    va.AddBuffer(vb, layout);
-
-    IndexBuffer ib(indices, 36);
-
-    va.Unbind();
-
     glClearColor(0.0f, 0.0f, 0.4f, 0.0f);
-
 
     SDL_Event event;
     bool running = true, debug_fps = true;
@@ -177,37 +157,41 @@ int main(int argc, char** argv) {
 
     Camera camera;
     camera.SetScreenSize(width, height);
+    camera.setPosition(glm::vec3(0, 3, 0));
 
     std::chrono::high_resolution_clock::time_point p1, p2;
     std::chrono::duration<double> duration;
 
-    for (int i = 0; i<blocks.size(); i++)
+    for (int i=0; i<world.size(); i++)
     {
-        if (!blocks[i]) continue;
-
-        std::shared_ptr<Cube> c(new Cube);
-        c->UpdateBuffer(glm::vec3(0, i, 0), glm::vec3(1, 1, 1), glm::vec2(), glm::vec2(), models.at(blocks[i]));
-
-        if (blocks[i] == 1 || blocks[i] == 2) // stone / dirt
+        for (int j=0; j<world[i].size(); j++)
         {
-            solidBlocks.push_back(std::move(c));
-        }
-        else if (blocks[i] == 3) // grass
-        {
-            grassBlocks.push_back(std::move(c));
-        }
-        else
-        {
-            transparentBlocks.push_back(std::move(c));
-        }
+            for (int x = 0; x<world[i][j].size(); x++)
+            {
+                for (int y = 0; y<world[i][j][x].size(); y++)
+                {
+                    for (int z = 0; z<world[i][j][x][y].size(); z++)
+                    {
+                        if (!world[i][j][x][y][z]) continue;
 
-    }
+                        std::shared_ptr<Cube> c(new Cube);
+                        c->UpdateBuffer(glm::vec3(i*16+x, y, j*16+z), glm::vec3(1, 1, 1), glm::vec2(), glm::vec2(), models.at(world[i][j][x][y][z]));
 
-    for (int x=0; x<floor.size(); x++)
-    {
-        for (int y=0; y<floor[x].size(); y++)
-        {
-
+                        if (world[i][j][x][y][z] == 1 || world[i][j][x][y][z] == 2) // stone / dirt
+                        {
+                            solidBlocks.push_back(std::move(c));
+                        }
+                        else if (world[i][j][x][y][z] == 3) // grass
+                        {
+                            grassBlocks.push_back(std::move(c));
+                        }
+                        else
+                        {
+                            transparentBlocks.push_back(std::move(c));
+                        }
+                    }
+                }
+            }
         }
     }
 
@@ -304,14 +288,6 @@ int main(int argc, char** argv) {
         camera.move(deltaTime);
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-
-        SimpleShader.Bind();
-        SimpleShader.SetUniformMat4fv("MVP", camera.getMVP());
-
-        va.Bind();
-        ib.Bind();
-        GLCall(glDrawElements(GL_TRIANGLES, 12*3, GL_UNSIGNED_INT, 0));
 
         textureArray.Bind();
 

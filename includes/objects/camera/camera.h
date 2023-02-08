@@ -10,6 +10,8 @@ class Camera {
         void move(float deltaTime);
         void look(Sint32 xrel, Sint32 yrel);
         
+        void setPosition(glm::vec3 position);
+
         void SetScreenSize(float width, float height);
         void UpdateProjection();
         
@@ -26,9 +28,9 @@ class Camera {
         double sensitivity = 500/2.5;
 
     private:
-        glm::vec3 cameraPos;
-        glm::vec3 cameraFront;
-        glm::vec3 cameraUp;
+        glm::vec3 m_cameraPos;
+        glm::vec3 m_cameraFront;
+        glm::vec3 m_cameraUp;
         glm::mat4 m_Projection;
         float m_ScreenWidth, m_ScreenHeight;
 };
