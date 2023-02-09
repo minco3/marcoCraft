@@ -13,7 +13,7 @@ void Camera::move(float deltaTime)
     if (up) cameraVelocity.y += 1.0f; 
     if (down) cameraVelocity.y += -1.0f;
 
-    if (sprint) cameraVelocity *= glm::vec3(2.0f, 2.0f, 2.0f);
+    if (sprint) cameraVelocity *= glm::vec3(4.0f, 4.0f, 4.0f);
 
     m_cameraPos += cameraVelocity*glm::vec3(deltaTime/1000,deltaTime/1000,deltaTime/1000);
 }

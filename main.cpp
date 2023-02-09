@@ -36,6 +36,8 @@
 
 int main(int argc, char** argv) {
 
+    SimplexNoise worldgen;
+
     const int width = 1000, height = 1000;
 
     bool mouseVisible = true, lastMouseVisible = true;
@@ -69,26 +71,22 @@ int main(int argc, char** argv) {
 
     std::vector<std::shared_ptr<Cube>> solidBlocks, grassBlocks, transparentBlocks;
 
+    std::array<std::array<std::array<int, 64>, 64>, 64> world;
 
-    typedef std::array<std::array<std::array<int, 16>, 16>, 16> chunk;
-
-    std::array<std::array<chunk, 4>, 4> world;
-
-    for (int i=0; i<world.size(); i++)
+    for (int x=0; x<world.size(); x++)
     {
-        for (int j=0; j<world[i].size(); j++)
+        for (int y=0; y<world[x].size(); y++)
         {
-            for (int x=0; x<16; x++)
+            for (int z=0; z<world[x][y].size(); z++)
             {
-                for (int z=0; z<16; z++)
-                {  
-                    world[i][j][x][0][z] = 1;
-                    world[i][j][x][1][z] = 2;
-                    world[i][j][x][2][z] = 3;
-                    for (int y=3; y<16; y++)
-                    {
-                        world[i][j][x][y][z] = 0;
-                    }
+                float val = worldgen.noise(x/50.f, y/50.f, z/50.f);
+                if (val >= 0.5)
+                {
+                    world[x][y][z] = 3;
+                }
+                else
+                {
+                    world[x][y][z] = 0;
                 }
             }
         }
@@ -158,26 +156,25 @@ int main(int argc, char** argv) {
 
     Camera camera;
     camera.SetScreenSize(width, height);
-    camera.setPosition(glm::vec3(0, 3, 0));
+    camera.setPosition(glm::vec3(0, 65, 0));
 
     std::chrono::high_resolution_clock::time_point p1, p2;
     std::chrono::duration<double> duration;
 
-    int offset = 0;
-
     VertexArray va;
 
-    VertexBuffer vb(64*64*4*9*36*sizeof(float));
+    VertexBuffer vb(64*64*64*9*36*sizeof(float));
     vb.Bind();
 
     for (int x=0; x<64; x++)
     {
-        for (int z=0; z<64; z++)
+        for (int y=0; y<64; y++)
         {
-            for (int y=0; y<4; y++)
+            for (int z=0; z<64; z++)
             {
+                if (!world[x][y][z]) continue;
                 glm::vec3 pos(x,y,z);
-                Model m = models.at(1);
+                Model m = models.at(3);
                 float vertices[36][9] = { // cube between 0 and 1
                 // face 1
                 { pos.x+0.0f, pos.y+0.0f, pos.z+0.0f,  0.6f, 0.8f, 0.4f,  0.0f, 1.0f, (float)m.front}, //0
@@ -222,7 +219,7 @@ int main(int argc, char** argv) {
                 { pos.x+0.0f, pos.y+1.0f, pos.z+0.0f,  0.6f, 0.8f, 0.4f,  0.0f, 1.0f, (float)m.top}, //4
                 { pos.x+0.0f, pos.y+1.0f, pos.z+1.0f,  0.6f, 0.8f, 0.4f,  0.0f, 0.0f, (float)m.top}, //2
                 };
-                int offset = x*64*4*9*36*sizeof(float) + z*4*9*36*sizeof(float) + y*9*36*sizeof(float);
+                int offset = x*64*64*9*36*sizeof(float) + y*64*9*36*sizeof(float) + z*9*36*sizeof(float);
                 GLCall(glBufferSubData(GL_ARRAY_BUFFER, offset, sizeof(float) * 9 * 36, vertices));
             }
         }        
@@ -236,38 +233,32 @@ int main(int argc, char** argv) {
     va.AddBuffer(vb, layout);
     
 
-    for (int i=0; i<world.size(); i++)
-    {
-        for (int j=0; j<world[i].size(); j++)
-        {
-            for (int x = 0; x<world[i][j].size(); x++)
-            {
-                for (int y = 0; y<world[i][j][x].size(); y++)
-                {
-                    for (int z = 0; z<world[i][j][x][y].size(); z++)
-                    {
-                        if (!world[i][j][x][y][z]) continue;
+    // for (int x=0; x<world.size(); x++)
+    // {
+    //     for (int y=0; y<world[x].size(); y++)
+    //     {
+    //         for (int z=0; z<world[x][y].size(); z++)
+    //         {
+    //             if (!world[x][y][z]) continue;
 
-                        std::shared_ptr<Cube> c(new Cube);
-                        c->UpdateBuffer(glm::vec3(i*16+x, y, j*16+z), glm::vec3(1, 1, 1), glm::vec2(), glm::vec2(), models.at(world[i][j][x][y][z]));
+    //             std::shared_ptr<Cube> c(new Cube);
+    //             c->UpdateBuffer(glm::vec3(x, y, z), glm::vec3(1, 1, 1), glm::vec2(), glm::vec2(), models.at(world[x][y][z]));
 
-                        if (world[i][j][x][y][z] == 1 || world[i][j][x][y][z] == 2) // stone / dirt
-                        {
-                            solidBlocks.push_back(std::move(c));
-                        }
-                        else if (world[i][j][x][y][z] == 3) // grass
-                        {
-                            grassBlocks.push_back(std::move(c));
-                        }
-                        else
-                        {
-                            transparentBlocks.push_back(std::move(c));
-                        }
-                    }
-                }
-            }
-        }
-    }
+    //             if (world[x][y][z] == 1 || world[x][y][z] == 2) // stone / dirt
+    //             {
+    //                 solidBlocks.push_back(std::move(c));
+    //             }
+    //             else if (world[x][y][z] == 3) // grass
+    //             {
+    //                 grassBlocks.push_back(std::move(c));
+    //             }
+    //             else
+    //             {
+    //                 transparentBlocks.push_back(std::move(c));
+    //             }
+    //         }
+    //     }
+    // }
 
     while (running) {
         lastTime = currentTime;
@@ -391,23 +382,23 @@ int main(int argc, char** argv) {
         // TransparentShader.SetUniformMat4fv("MVP", camera.getMVP());
         // TransparentShader.SetUniform1i("textureSlot", 1);
 
-        CubeShader.Bind();
-        CubeShader.SetUniformMat4fv("MVP", camera.getMVP());
-        CubeShader.SetUniform1i("textureSlot", 1);
+        GrassShader.Bind();
+        GrassShader.SetUniformMat4fv("MVP", camera.getMVP());
+        GrassShader.SetUniform1i("textureSlot", 1);
 
         va.Bind();
 
-        GLCall(glDrawArrays(GL_TRIANGLES, 0, 36*4*64*64));
+        GLCall(glDrawArrays(GL_TRIANGLES, 0, 36*64*64*64));
 
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        // glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-        for (const auto& b : transparentBlocks)
-        {
-            b->Bind();
-            GLCall(glDrawArrays(GL_TRIANGLES, 0, b->IndexCount()));
-        }
+        // for (const auto& b : transparentBlocks)
+        // {
+        //     b->Bind();
+        //     GLCall(glDrawArrays(GL_TRIANGLES, 0, b->IndexCount()));
+        // }
 
-        glBlendFunc(GL_ONE, GL_ZERO);
+        // glBlendFunc(GL_ONE, GL_ZERO);
 
         if (debug_fps) {
             if (fpsProfileFrame % 128 == 0) {
