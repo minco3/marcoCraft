@@ -16,7 +16,8 @@
 #include <array>
 
 #define STB_IMAGE_IMPLEMENTATION
-#include "includes/textures/stb_image.h"
+#include "external/stb_image/stb_image.h"
+#include "external/SimplexNoise/SimplexNoise.h"
 
 #include "includes/opengl/renderer.h"
 #include "includes/opengl/VertexBuffer.h"
@@ -48,7 +49,7 @@ int main(int argc, char** argv) {
     SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, 0);
     SDL_GLContext context = SDL_GL_CreateContext(window);
 
-    SDL_GL_SetSwapInterval(0); // disable vsync
+    SDL_GL_SetSwapInterval(1); // disable vsync
 
     SDL_Surface* icon;
     SDL_RWops*  rwop;

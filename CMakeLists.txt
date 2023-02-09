@@ -7,6 +7,9 @@ enable_testing()
 set(INCLUDES_FOLDER includes)
 file(GLOB_RECURSE SOURCE_FILES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} CONFIGURE_DEPENDS "${INCLUDES_FOLDER}/*.cpp")
 
+set(EXTERNAL_FOLDER external)
+file(GLOB_RECURSE EXTERNAL_FILES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} CONFIGURE_DEPENDS "${EXTERNAL_FOLDER}/*.cpp")
+
 # SET(SOURCE_FILES
 #     includes/opengl/Renderer.cpp
 #     includes/opengl/IndexBuffer.cpp
@@ -18,7 +21,7 @@ file(GLOB_RECURSE SOURCE_FILES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} CONFIGURE_DE
 # )
 
 
-add_executable(minecraft main.cpp ${SOURCE_FILES})
+add_executable(minecraft main.cpp ${SOURCE_FILES} ${EXTERNAL_FILES})
 find_package(GTest)
 find_package(GLEW)
 find_package(freeglut)
