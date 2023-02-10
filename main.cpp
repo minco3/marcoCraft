@@ -34,6 +34,8 @@
 #include "includes/primitives/TexturedQuad.h"
 #include "includes/primitives/TexturedCube.h"
 
+#include "includes/utils/Timer.h"
+
 int main(int argc, char** argv) {
 
     SimplexNoise worldgen;
@@ -51,7 +53,7 @@ int main(int argc, char** argv) {
     SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, 0);
     SDL_GLContext context = SDL_GL_CreateContext(window);
 
-    SDL_GL_SetSwapInterval(0); // disable vsync
+    SDL_GL_SetSwapInterval(1); // vsync
 
     SDL_Surface* icon;
     SDL_RWops*  rwop;
@@ -78,19 +80,30 @@ int main(int argc, char** argv) {
 
     std::vector<std::shared_ptr<Cube>> solidBlocks, grassBlocks, transparentBlocks;
 
-    std::array<std::array<std::array<int, 64>, 64>, 64> world;
+    std::array<std::array<std::array<int, 16>, 128>, 16> world;
+
+    Timer worldgenTimer("Worldgen");
 
     for (int x=0; x<world.size(); x++)
     {
-        for (int y=0; y<world[x].size(); y++)
+        for (int z=0; z<world[x][0].size(); z++)
         {
-            for (int z=0; z<world[x][y].size(); z++)
+            // world[x][y][z] = 0;
+            float val = worldgen.fractal(3, x/100.f, z/100.f);
+            int height = 64 + val*20;
+            for (int y=0; y<world[x].size(); y++)
             {
-                // world[x][y][z] = 0;
-                float val = worldgen.fractal(3, x/100.f, y/100.f, z/100.f);
-                if (val >= 0.5)
+                if (y <= height-2)
                 {
                     world[x][y][z] = 1;
+                }
+                else if (y == height-1)
+                {
+                    world[x][y][z] = 2;
+                }
+                else if (y == height)
+                {
+                    world[x][y][z] = 3;
                 }
                 else
                 {
@@ -100,33 +113,11 @@ int main(int argc, char** argv) {
         }
     }
 
-    // world[1][62][1] = 1;
-
-
-    for (int x=0; x<world.size(); x++)
-    {
-        for (int y=0; y<world[x].size(); y++)
-        {
-            for (int z=0; z<world[x][y].size(); z++)
-            {
-                if (world[x][y][z] && (y == 63 || !world[x][y+1][z]))
-                    world[x][y][z] = 3;
-            }
-        }
-    }
-    for (int x=0; x<world.size(); x++)
-    {
-        for (int y=0; y<world[x].size()-1; y++)
-        {
-            for (int z=0; z<world[x][y].size(); z++)
-            {
-                if (world[x][y][z] && world[x][y+1][z] == 3)
-                    world[x][y][z] = 2;
-            }
-        }
-    }
+    worldgenTimer.Stop();
 
     std::vector<Block> visibleBlocks[2];
+
+    Timer invisibleCullingTimer("Invisible face culling");
 
     for (int x=0; x<world.size(); x++)
     {
@@ -154,17 +145,17 @@ int main(int argc, char** argv) {
                     isVisible = true;
                     faces[2] = true;
                 }
-                if (x==63 || !world[x+1][y][z])
+                if (x==world.size()-1 || !world[x+1][y][z])
                 {
                     isVisible = true;
                     faces[3] = true;
                 }
-                if (y==63 || !world[x][y+1][z])
+                if (y==world[0].size()-1 || !world[x][y+1][z])
                 {
                     isVisible = true;
                     faces[4] = true;
                 }
-                if (z==63 || !world[x][y][z+1])
+                if (z==world[0][0].size()-1 || !world[x][y][z+1])
                 {
                     isVisible = true;
                     faces[5] = true;
@@ -184,6 +175,8 @@ int main(int argc, char** argv) {
             }
         }
     }
+
+    invisibleCullingTimer.Stop();
 
     const std::map<int, Model> models = {
         {1, stoneBlock}, {2, dirtBlock}, {3, grassBlock}, {4, glassBlock}
@@ -254,10 +247,12 @@ int main(int argc, char** argv) {
     std::chrono::high_resolution_clock::time_point p1, p2;
     std::chrono::duration<double> duration;
 
+    Timer bufferFillTimer("Buffer filling");
+
     VertexArray va;
     va.Bind();
 
-    VertexBuffer vb(64*64*64*9*36*sizeof(float));
+    VertexBuffer vb(128*64*128*9*36*sizeof(float));
     vb.Bind();
     
     int offset = 0, grassOffset = 0;
@@ -370,6 +365,8 @@ int main(int argc, char** argv) {
     layout.Push(GL_FLOAT, 3);
 
     va.AddBuffer(vb, layout);
+
+    bufferFillTimer.Stop();
     
 
     // for (int x=0; x<world.size(); x++)
@@ -556,7 +553,7 @@ int main(int argc, char** argv) {
                 fpsCount.clear();
                 fpsCount.str(std::string());
                 fpsCount << std::fixed << std::setprecision(0) << 1/duration.count();
-                fpsCounter.SetString(fpsCount.str());
+                fpsCounter.SetString(fpsCount.str() + " fps");
             }
             fpsCounter.RenderText();
         }
