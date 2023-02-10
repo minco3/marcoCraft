@@ -548,16 +548,16 @@ int main(int argc, char** argv) {
         // glBlendFunc(GL_ONE, GL_ZERO);
 
         if (debug_fps) {
-            if (fpsProfileFrame % 128 == 0) {
+            using namespace std::chrono_literals;
+            if (std::chrono::high_resolution_clock::now() > p1+500ms) {
                 fpsProfileFrame = 1;
                 p1 = std::chrono::high_resolution_clock::now();
                 std::chrono::duration<double> duration = std::chrono::duration_cast<std::chrono::duration<double>> (p1-p2);
                 fpsCount.clear();
                 fpsCount.str(std::string());
-                fpsCount << std::fixed << std::setprecision(1) << 1/duration.count();
+                fpsCount << std::fixed << std::setprecision(0) << 1/duration.count();
                 fpsCounter.SetString(fpsCount.str());
             }
-            fpsProfileFrame++;
             fpsCounter.RenderText();
         }
         p2 = std::chrono::high_resolution_clock::now();
