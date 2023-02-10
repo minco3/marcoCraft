@@ -20,6 +20,8 @@ public:
 
     void setPosition(glm::vec2);
 
+    void SetScreenSize(int width, int height);
+
     void RenderText();
 
 private:

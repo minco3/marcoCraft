@@ -49,7 +49,7 @@ int main(int argc, char** argv) {
     SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 4);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
 
-    SDL_Window* window = SDL_CreateWindow("Marcocraft", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, width, height, SDL_WINDOW_SHOWN | SDL_WINDOW_OPENGL);
+    SDL_Window* window = SDL_CreateWindow("Marcocraft", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, width, height, SDL_WINDOW_SHOWN | SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE);
     SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, 0);
     SDL_GLContext context = SDL_GL_CreateContext(window);
 
@@ -67,7 +67,7 @@ int main(int argc, char** argv) {
     {
 
     Model stoneBlock = {0,0,0,0,0,0};
-    Model dirtBlock = {1,1,1,1,1,1};
+    Model dirtBlock  = {1,1,1,1,1,1};
     Model grassBlock = {2,2,2,2,3,1};
     Model glassBlock = {5,5,5,5,5,5};
 
@@ -229,6 +229,7 @@ int main(int argc, char** argv) {
 
     Text fpsCounter(font);
     fpsCounter.setPosition(glm::vec2(100,height-100));
+    fpsCounter.SetScreenSize(width, height);
 
     glClearColor(0.0f, 0.0f, 0.4f, 0.0f);
 
@@ -414,6 +415,11 @@ int main(int argc, char** argv) {
                     break;
                 case SDL_WINDOWEVENT_LEAVE:
                     mouseVisible = true;
+                    break;
+                case SDL_WINDOWEVENT_RESIZED:
+                    GLCall(glViewport(0, 0, event.window.data1, event.window.data2));
+                    // camera.SetScreenSize(event.window.data1, event.window.data1);
+                    // fpsCounter.SetScreenSize(event.window.data1, event.window.data2);
                     break;
                 }
             break;
