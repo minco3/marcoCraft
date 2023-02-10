@@ -69,6 +69,13 @@ int main(int argc, char** argv) {
     Model grassBlock = {2,2,2,2,3,1};
     Model glassBlock = {5,5,5,5,5,5};
 
+    struct Block
+    {
+        std::array<bool, 6> facesVisible;
+        glm::ivec3 position;
+        int model;
+    };
+
     std::vector<std::shared_ptr<Cube>> solidBlocks, grassBlocks, transparentBlocks;
 
     std::array<std::array<std::array<int, 64>, 64>, 64> world;
@@ -79,14 +86,91 @@ int main(int argc, char** argv) {
         {
             for (int z=0; z<world[x][y].size(); z++)
             {
-                float val = worldgen.noise(x/50.f, y/50.f, z/50.f);
+                world[x][y][z] = 0;
+                float val = worldgen.fractal(3, x/100.f, y/100.f, z/100.f);
                 if (val >= 0.5)
                 {
-                    world[x][y][z] = 3;
+                    world[x][y][z] = 1;
                 }
                 else
                 {
                     world[x][y][z] = 0;
+                }
+            }
+        }
+    }
+
+
+    for (int x=0; x<world.size(); x++)
+    {
+        for (int y=0; y<world[x].size(); y++)
+        {
+            for (int z=0; z<world[x][y].size(); z++)
+            {
+                if (world[x][y][z] && (y == 63 || !world[x][y+1][z]))
+                    world[x][y][z] = 3;
+            }
+        }
+    }
+    for (int x=0; x<world.size(); x++)
+    {
+        for (int y=0; y<world[x].size()-1; y++)
+        {
+            for (int z=0; z<world[x][y].size(); z++)
+            {
+                if (world[x][y][z] && world[x][y+1][z] == 3)
+                    world[x][y][z] = 2;
+            }
+        }
+    }
+
+    std::vector<Block> visibleBlocks;
+
+    for (int x=0; x<world.size(); x++)
+    {
+        for (int y=0; y<world[x].size(); y++)
+        {
+            for (int z=0; z<world[x][y].size(); z++)
+            {
+                bool isVisible = false; 
+                std::array<bool, 6> faces{false};
+
+                if (!world[x][y][z]) continue;
+                
+                if (x==0 || !world[x-1][y][z])
+                {
+                    isVisible = true;
+                    faces[0] = true;
+                }
+                if (y==0 || !world[x][y-1][z])
+                {
+                    isVisible = true;
+                    faces[1] = true;
+                }
+                if (z==0 || !world[x][y][z-1])
+                {
+                    isVisible = true;
+                    faces[2] = true;
+                }
+                if (x==63 || !world[x+1][y][z])
+                {
+                    isVisible = true;
+                    faces[3] = true;
+                }
+                if (y==63 || !world[x][y+1][z])
+                {
+                    isVisible = true;
+                    faces[4] = true;
+                }
+                if (z==63 || !world[x][y][z+1])
+                {
+                    isVisible = true;
+                    faces[5] = true;
+                }
+                
+                if (isVisible)
+                {
+                    visibleBlocks.push_back({faces, {x,y,z}, world[x][y][z]});
                 }
             }
         }
@@ -166,63 +250,100 @@ int main(int argc, char** argv) {
     VertexBuffer vb(64*64*64*9*36*sizeof(float));
     vb.Bind();
 
-    for (int x=0; x<64; x++)
+    int offset = 0;
+
+
+    for (const Block& b : visibleBlocks)
     {
-        for (int y=0; y<64; y++)
+
+        glm::vec3 pos = b.position;
+        Model m = models.at(b.model);        
+
+        float vertices[36][9];
+        
+        int facesVisible = 0;
+
+        if (b.facesVisible[0]) // face 1
         {
-            for (int z=0; z<64; z++)
-            {
-                if (!world[x][y][z]) continue;
-                glm::vec3 pos(x,y,z);
-                Model m = models.at(3);
-                float vertices[36][9] = { // cube between 0 and 1
-                // face 1
-                { pos.x+0.0f, pos.y+0.0f, pos.z+0.0f,  0.6f, 0.8f, 0.4f,  0.0f, 1.0f, (float)m.front}, //0
-                { pos.x+0.0f, pos.y+0.0f, pos.z+1.0f,  0.6f, 0.8f, 0.4f,  1.0f, 1.0f, (float)m.front}, //1
-                { pos.x+0.0f, pos.y+1.0f, pos.z+1.0f,  0.6f, 0.8f, 0.4f,  1.0f, 0.0f, (float)m.front}, //2
-                { pos.x+0.0f, pos.y+0.0f, pos.z+0.0f,  0.6f, 0.8f, 0.4f,  0.0f, 1.0f, (float)m.front}, //0
-                { pos.x+0.0f, pos.y+1.0f, pos.z+1.0f,  0.6f, 0.8f, 0.4f,  1.0f, 0.0f, (float)m.front}, //2
-                { pos.x+0.0f, pos.y+1.0f, pos.z+0.0f,  0.6f, 0.8f, 0.4f,  0.0f, 0.0f, (float)m.front}, //4
-                // face 2 (bottom)
-                { pos.x+1.0f, pos.y+0.0f, pos.z+1.0f,  1.0f, 1.0f, 1.0f,  1.0f, 0.0f, (float)m.bottom}, //5
-                { pos.x+0.0f, pos.y+0.0f, pos.z+0.0f,  1.0f, 1.0f, 1.0f,  0.0f, 1.0f, (float)m.bottom}, //0
-                { pos.x+1.0f, pos.y+0.0f, pos.z+0.0f,  1.0f, 1.0f, 1.0f,  1.0f, 1.0f, (float)m.bottom}, //6
-                { pos.x+1.0f, pos.y+0.0f, pos.z+1.0f,  1.0f, 1.0f, 1.0f,  1.0f, 0.0f, (float)m.bottom}, //5
-                { pos.x+0.0f, pos.y+0.0f, pos.z+1.0f,  1.0f, 1.0f, 1.0f,  0.0f, 0.0f, (float)m.bottom}, //1
-                { pos.x+0.0f, pos.y+0.0f, pos.z+0.0f,  1.0f, 1.0f, 1.0f,  0.0f, 1.0f, (float)m.bottom}, //0
-                // face 3
-                { pos.x+1.0f, pos.y+1.0f, pos.z+0.0f,  0.6f, 0.8f, 0.4f,  1.0f, 0.0f, (float)m.left}, //3
-                { pos.x+1.0f, pos.y+0.0f, pos.z+0.0f,  0.6f, 0.8f, 0.4f,  1.0f, 1.0f, (float)m.left}, //6
-                { pos.x+0.0f, pos.y+0.0f, pos.z+0.0f,  0.6f, 0.8f, 0.4f,  0.0f, 1.0f, (float)m.left}, //0
-                { pos.x+1.0f, pos.y+1.0f, pos.z+0.0f,  0.6f, 0.8f, 0.4f,  1.0f, 0.0f, (float)m.left}, //3
-                { pos.x+0.0f, pos.y+0.0f, pos.z+0.0f,  0.6f, 0.8f, 0.4f,  0.0f, 1.0f, (float)m.left}, //0
-                { pos.x+0.0f, pos.y+1.0f, pos.z+0.0f,  0.6f, 0.8f, 0.4f,  0.0f, 0.0f, (float)m.left}, //4
-                // face 4
-                { pos.x+1.0f, pos.y+1.0f, pos.z+1.0f,  0.6f, 0.8f, 0.4f,  1.0f, 0.0f, (float)m.right}, //7
-                { pos.x+1.0f, pos.y+0.0f, pos.z+0.0f,  0.6f, 0.8f, 0.4f,  0.0f, 1.0f, (float)m.right}, //6
-                { pos.x+1.0f, pos.y+1.0f, pos.z+0.0f,  0.6f, 0.8f, 0.4f,  0.0f, 0.0f, (float)m.right}, //3
-                { pos.x+1.0f, pos.y+0.0f, pos.z+0.0f,  0.6f, 0.8f, 0.4f,  0.0f, 1.0f, (float)m.right}, //6
-                { pos.x+1.0f, pos.y+1.0f, pos.z+1.0f,  0.6f, 0.8f, 0.4f,  1.0f, 0.0f, (float)m.right}, //7
-                { pos.x+1.0f, pos.y+0.0f, pos.z+1.0f,  0.6f, 0.8f, 0.4f,  1.0f, 1.0f, (float)m.right}, //5
-                // face 5
-                { pos.x+0.0f, pos.y+1.0f, pos.z+1.0f,  0.6f, 0.8f, 0.4f,  0.0f, 0.0f, (float)m.back}, //2
-                { pos.x+0.0f, pos.y+0.0f, pos.z+1.0f,  0.6f, 0.8f, 0.4f,  0.0f, 1.0f, (float)m.back}, //1
-                { pos.x+1.0f, pos.y+0.0f, pos.z+1.0f,  0.6f, 0.8f, 0.4f,  1.0f, 1.0f, (float)m.back}, //5
-                { pos.x+1.0f, pos.y+1.0f, pos.z+1.0f,  0.6f, 0.8f, 0.4f,  1.0f, 0.0f, (float)m.back}, //7
-                { pos.x+0.0f, pos.y+1.0f, pos.z+1.0f,  0.6f, 0.8f, 0.4f,  0.0f, 0.0f, (float)m.back}, //2
-                { pos.x+1.0f, pos.y+0.0f, pos.z+1.0f,  0.6f, 0.8f, 0.4f,  1.0f, 1.0f, (float)m.back}, //5
-                // face 6 (top)
-                { pos.x+1.0f, pos.y+1.0f, pos.z+1.0f,  0.6f, 0.8f, 0.4f,  1.0f, 0.0f, (float)m.top}, //7
-                { pos.x+1.0f, pos.y+1.0f, pos.z+0.0f,  0.6f, 0.8f, 0.4f,  1.0f, 1.0f, (float)m.top}, //3
-                { pos.x+0.0f, pos.y+1.0f, pos.z+0.0f,  0.6f, 0.8f, 0.4f,  0.0f, 1.0f, (float)m.top}, //4
-                { pos.x+1.0f, pos.y+1.0f, pos.z+1.0f,  0.6f, 0.8f, 0.4f,  1.0f, 0.0f, (float)m.top}, //7
-                { pos.x+0.0f, pos.y+1.0f, pos.z+0.0f,  0.6f, 0.8f, 0.4f,  0.0f, 1.0f, (float)m.top}, //4
-                { pos.x+0.0f, pos.y+1.0f, pos.z+1.0f,  0.6f, 0.8f, 0.4f,  0.0f, 0.0f, (float)m.top}, //2
-                };
-                int offset = x*64*64*9*36*sizeof(float) + y*64*9*36*sizeof(float) + z*9*36*sizeof(float);
-                GLCall(glBufferSubData(GL_ARRAY_BUFFER, offset, sizeof(float) * 9 * 36, vertices));
-            }
-        }        
+            float face [6][9] = {
+                { pos.x+0.0f, pos.y+1.0f, pos.z+1.0f,  0.6f, 0.8f, 0.4f,  1.0f, 0.0f, (float)m.front }, //2
+                { pos.x+0.0f, pos.y+0.0f, pos.z+0.0f,  0.6f, 0.8f, 0.4f,  0.0f, 1.0f, (float)m.front }, //0
+                { pos.x+0.0f, pos.y+0.0f, pos.z+1.0f,  0.6f, 0.8f, 0.4f,  1.0f, 1.0f, (float)m.front }, //1
+                { pos.x+0.0f, pos.y+1.0f, pos.z+1.0f,  0.6f, 0.8f, 0.4f,  1.0f, 0.0f, (float)m.front }, //2
+                { pos.x+0.0f, pos.y+1.0f, pos.z+0.0f,  0.6f, 0.8f, 0.4f,  0.0f, 0.0f, (float)m.front }, //4
+                { pos.x+0.0f, pos.y+0.0f, pos.z+0.0f,  0.6f, 0.8f, 0.4f,  0.0f, 1.0f, (float)m.front } //0
+            };
+            memcpy(vertices+facesVisible * 6, face, 6*9*sizeof(float));
+            facesVisible++;
+        }
+        if (b.facesVisible[1]) // face 2 (bottom)
+        {
+            float face [6][9] = {
+                { pos.x+1.0f, pos.y+0.0f, pos.z+1.0f,  1.0f, 1.0f, 1.0f,  1.0f, 0.0f, (float)m.bottom }, //5
+                { pos.x+0.0f, pos.y+0.0f, pos.z+0.0f,  1.0f, 1.0f, 1.0f,  0.0f, 1.0f, (float)m.bottom }, //0
+                { pos.x+1.0f, pos.y+0.0f, pos.z+0.0f,  1.0f, 1.0f, 1.0f,  1.0f, 1.0f, (float)m.bottom }, //6
+                { pos.x+1.0f, pos.y+0.0f, pos.z+1.0f,  1.0f, 1.0f, 1.0f,  1.0f, 0.0f, (float)m.bottom }, //5
+                { pos.x+0.0f, pos.y+0.0f, pos.z+1.0f,  1.0f, 1.0f, 1.0f,  0.0f, 0.0f, (float)m.bottom }, //1
+                { pos.x+0.0f, pos.y+0.0f, pos.z+0.0f,  1.0f, 1.0f, 1.0f,  0.0f, 1.0f, (float)m.bottom }, //0
+            };
+            memcpy(vertices+facesVisible * 6, face, 6*9*sizeof(float));
+            facesVisible++;
+        }
+        if (b.facesVisible[2]) // face 3 (bottom)
+        {
+            float face [6][9] = {
+                { pos.x+1.0f, pos.y+1.0f, pos.z+0.0f,  0.6f, 0.8f, 0.4f,  1.0f, 0.0f, (float)m.left }, //3
+                { pos.x+0.0f, pos.y+0.0f, pos.z+0.0f,  0.6f, 0.8f, 0.4f,  0.0f, 1.0f, (float)m.left }, //0
+                { pos.x+1.0f, pos.y+0.0f, pos.z+0.0f,  0.6f, 0.8f, 0.4f,  1.0f, 1.0f, (float)m.left }, //6
+                { pos.x+1.0f, pos.y+1.0f, pos.z+0.0f,  0.6f, 0.8f, 0.4f,  1.0f, 0.0f, (float)m.left }, //3
+                { pos.x+0.0f, pos.y+1.0f, pos.z+0.0f,  0.6f, 0.8f, 0.4f,  0.0f, 0.0f, (float)m.left }, //4
+                { pos.x+0.0f, pos.y+0.0f, pos.z+0.0f,  0.6f, 0.8f, 0.4f,  0.0f, 1.0f, (float)m.left }, //0
+            };
+            memcpy(vertices+facesVisible * 6, face, 6*9*sizeof(float));
+            facesVisible++;
+        }
+        if (b.facesVisible[3]) // face 4
+        {
+            float face [6][9] = {
+                { pos.x+1.0f, pos.y+1.0f, pos.z+1.0f,  0.6f, 0.8f, 0.4f,  1.0f, 0.0f, (float)m.right }, //7
+                { pos.x+1.0f, pos.y+0.0f, pos.z+0.0f,  0.6f, 0.8f, 0.4f,  0.0f, 1.0f, (float)m.right }, //6
+                { pos.x+1.0f, pos.y+1.0f, pos.z+0.0f,  0.6f, 0.8f, 0.4f,  0.0f, 0.0f, (float)m.right }, //3
+                { pos.x+1.0f, pos.y+0.0f, pos.z+0.0f,  0.6f, 0.8f, 0.4f,  0.0f, 1.0f, (float)m.right }, //6
+                { pos.x+1.0f, pos.y+1.0f, pos.z+1.0f,  0.6f, 0.8f, 0.4f,  1.0f, 0.0f, (float)m.right }, //7
+                { pos.x+1.0f, pos.y+0.0f, pos.z+1.0f,  0.6f, 0.8f, 0.4f,  1.0f, 1.0f, (float)m.right }, //5
+            };
+            memcpy(vertices+facesVisible * 6, face, 6*9*sizeof(float));
+            facesVisible++;
+        }
+        if (b.facesVisible[4]) // face 5
+        {
+            float face [6][9] = {
+                { pos.x+0.0f, pos.y+1.0f, pos.z+1.0f,  0.6f, 0.8f, 0.4f,  0.0f, 0.0f, (float)m.back }, //2
+                { pos.x+0.0f, pos.y+0.0f, pos.z+1.0f,  0.6f, 0.8f, 0.4f,  0.0f, 1.0f, (float)m.back }, //1
+                { pos.x+1.0f, pos.y+0.0f, pos.z+1.0f,  0.6f, 0.8f, 0.4f,  1.0f, 1.0f, (float)m.back }, //5
+                { pos.x+1.0f, pos.y+1.0f, pos.z+1.0f,  0.6f, 0.8f, 0.4f,  1.0f, 0.0f, (float)m.back }, //7
+                { pos.x+0.0f, pos.y+1.0f, pos.z+1.0f,  0.6f, 0.8f, 0.4f,  0.0f, 0.0f, (float)m.back }, //2
+                { pos.x+1.0f, pos.y+0.0f, pos.z+1.0f,  0.6f, 0.8f, 0.4f,  1.0f, 1.0f, (float)m.back }, //5
+            };
+            memcpy(vertices+facesVisible * 6, face, 6*9*sizeof(float));
+            facesVisible++;
+        }
+        if (b.facesVisible[5]) // face 6
+        {
+            float face [6][9] = {
+                { pos.x+1.0f, pos.y+1.0f, pos.z+1.0f,  0.6f, 0.8f, 0.4f,  1.0f, 0.0f, (float)m.top }, //7
+                { pos.x+1.0f, pos.y+1.0f, pos.z+0.0f,  0.6f, 0.8f, 0.4f,  1.0f, 1.0f, (float)m.top }, //3
+                { pos.x+0.0f, pos.y+1.0f, pos.z+0.0f,  0.6f, 0.8f, 0.4f,  0.0f, 1.0f, (float)m.top }, //4
+                { pos.x+1.0f, pos.y+1.0f, pos.z+1.0f,  0.6f, 0.8f, 0.4f,  1.0f, 0.0f, (float)m.top }, //7
+                { pos.x+0.0f, pos.y+1.0f, pos.z+0.0f,  0.6f, 0.8f, 0.4f,  0.0f, 1.0f, (float)m.top }, //4
+                { pos.x+0.0f, pos.y+1.0f, pos.z+1.0f,  0.6f, 0.8f, 0.4f,  0.0f, 0.0f, (float)m.top }, //2
+            };
+            memcpy(vertices+facesVisible * 6, face, 6*9*sizeof(float));
+            facesVisible++;
+        }
+
+        GLCall(glBufferSubData(GL_ARRAY_BUFFER, offset, facesVisible * 6 * 9 * sizeof(float), vertices));
+        offset += facesVisible * 6 * 9 * sizeof(float);
     }
 
     VertexBufferLayout layout;
@@ -387,8 +508,8 @@ int main(int argc, char** argv) {
         GrassShader.SetUniform1i("textureSlot", 1);
 
         va.Bind();
+        GLCall(glDrawArrays(GL_TRIANGLES, 0, offset/6*9*sizeof(float)));
 
-        GLCall(glDrawArrays(GL_TRIANGLES, 0, 36*64*64*64));
 
         // glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
