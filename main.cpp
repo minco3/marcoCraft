@@ -38,7 +38,7 @@ int main(int argc, char** argv) {
 
     SimplexNoise worldgen;
 
-    const int width = 1000, height = 1000;
+    const int width = 1920, height = 1080;
 
     bool mouseVisible = true, lastMouseVisible = true;
 
@@ -51,7 +51,7 @@ int main(int argc, char** argv) {
     SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, 0);
     SDL_GLContext context = SDL_GL_CreateContext(window);
 
-    SDL_GL_SetSwapInterval(1); // disable vsync
+    SDL_GL_SetSwapInterval(0); // disable vsync
 
     SDL_Surface* icon;
     SDL_RWops*  rwop;
@@ -86,7 +86,7 @@ int main(int argc, char** argv) {
         {
             for (int z=0; z<world[x][y].size(); z++)
             {
-                world[x][y][z] = 0;
+                // world[x][y][z] = 0;
                 float val = worldgen.fractal(3, x/100.f, y/100.f, z/100.f);
                 if (val >= 0.5)
                 {
@@ -99,6 +99,8 @@ int main(int argc, char** argv) {
             }
         }
     }
+
+    // world[1][62][1] = 1;
 
 
     for (int x=0; x<world.size(); x++)
@@ -124,7 +126,7 @@ int main(int argc, char** argv) {
         }
     }
 
-    std::vector<Block> visibleBlocks;
+    std::vector<Block> visibleBlocks[2];
 
     for (int x=0; x<world.size(); x++)
     {
@@ -170,7 +172,14 @@ int main(int argc, char** argv) {
                 
                 if (isVisible)
                 {
-                    visibleBlocks.push_back({faces, {x,y,z}, world[x][y][z]});
+                    // grass
+                    if (world[x][y][z] == 3) {
+                        visibleBlocks[1].push_back({faces, {x,y,z}, world[x][y][z]});
+                    }
+                    else
+                    {
+                        visibleBlocks[0].push_back({faces, {x,y,z}, world[x][y][z]});
+                    }
                 }
             }
         }
@@ -246,104 +255,113 @@ int main(int argc, char** argv) {
     std::chrono::duration<double> duration;
 
     VertexArray va;
+    va.Bind();
 
     VertexBuffer vb(64*64*64*9*36*sizeof(float));
     vb.Bind();
+    
+    int offset = 0, grassOffset = 0;
 
-    int offset = 0;
-
-
-    for (const Block& b : visibleBlocks)
+    for (int i=0; i<2; i++)
     {
 
-        glm::vec3 pos = b.position;
-        Model m = models.at(b.model);        
+        for (const Block& b : visibleBlocks[i])
+        {
 
-        float vertices[36][9];
-        
-        int facesVisible = 0;
+            glm::vec3 pos = b.position;
+            Model m = models.at(b.model);        
 
-        if (b.facesVisible[0]) // face 1
-        {
-            float face [6][9] = {
-                { pos.x+0.0f, pos.y+1.0f, pos.z+1.0f,  0.6f, 0.8f, 0.4f,  1.0f, 0.0f, (float)m.front }, //2
-                { pos.x+0.0f, pos.y+0.0f, pos.z+0.0f,  0.6f, 0.8f, 0.4f,  0.0f, 1.0f, (float)m.front }, //0
-                { pos.x+0.0f, pos.y+0.0f, pos.z+1.0f,  0.6f, 0.8f, 0.4f,  1.0f, 1.0f, (float)m.front }, //1
-                { pos.x+0.0f, pos.y+1.0f, pos.z+1.0f,  0.6f, 0.8f, 0.4f,  1.0f, 0.0f, (float)m.front }, //2
-                { pos.x+0.0f, pos.y+1.0f, pos.z+0.0f,  0.6f, 0.8f, 0.4f,  0.0f, 0.0f, (float)m.front }, //4
-                { pos.x+0.0f, pos.y+0.0f, pos.z+0.0f,  0.6f, 0.8f, 0.4f,  0.0f, 1.0f, (float)m.front } //0
-            };
-            memcpy(vertices+facesVisible * 6, face, 6*9*sizeof(float));
-            facesVisible++;
-        }
-        if (b.facesVisible[1]) // face 2 (bottom)
-        {
-            float face [6][9] = {
-                { pos.x+1.0f, pos.y+0.0f, pos.z+1.0f,  1.0f, 1.0f, 1.0f,  1.0f, 0.0f, (float)m.bottom }, //5
-                { pos.x+0.0f, pos.y+0.0f, pos.z+0.0f,  1.0f, 1.0f, 1.0f,  0.0f, 1.0f, (float)m.bottom }, //0
-                { pos.x+1.0f, pos.y+0.0f, pos.z+0.0f,  1.0f, 1.0f, 1.0f,  1.0f, 1.0f, (float)m.bottom }, //6
-                { pos.x+1.0f, pos.y+0.0f, pos.z+1.0f,  1.0f, 1.0f, 1.0f,  1.0f, 0.0f, (float)m.bottom }, //5
-                { pos.x+0.0f, pos.y+0.0f, pos.z+1.0f,  1.0f, 1.0f, 1.0f,  0.0f, 0.0f, (float)m.bottom }, //1
-                { pos.x+0.0f, pos.y+0.0f, pos.z+0.0f,  1.0f, 1.0f, 1.0f,  0.0f, 1.0f, (float)m.bottom }, //0
-            };
-            memcpy(vertices+facesVisible * 6, face, 6*9*sizeof(float));
-            facesVisible++;
-        }
-        if (b.facesVisible[2]) // face 3 (bottom)
-        {
-            float face [6][9] = {
-                { pos.x+1.0f, pos.y+1.0f, pos.z+0.0f,  0.6f, 0.8f, 0.4f,  1.0f, 0.0f, (float)m.left }, //3
-                { pos.x+0.0f, pos.y+0.0f, pos.z+0.0f,  0.6f, 0.8f, 0.4f,  0.0f, 1.0f, (float)m.left }, //0
-                { pos.x+1.0f, pos.y+0.0f, pos.z+0.0f,  0.6f, 0.8f, 0.4f,  1.0f, 1.0f, (float)m.left }, //6
-                { pos.x+1.0f, pos.y+1.0f, pos.z+0.0f,  0.6f, 0.8f, 0.4f,  1.0f, 0.0f, (float)m.left }, //3
-                { pos.x+0.0f, pos.y+1.0f, pos.z+0.0f,  0.6f, 0.8f, 0.4f,  0.0f, 0.0f, (float)m.left }, //4
-                { pos.x+0.0f, pos.y+0.0f, pos.z+0.0f,  0.6f, 0.8f, 0.4f,  0.0f, 1.0f, (float)m.left }, //0
-            };
-            memcpy(vertices+facesVisible * 6, face, 6*9*sizeof(float));
-            facesVisible++;
-        }
-        if (b.facesVisible[3]) // face 4
-        {
-            float face [6][9] = {
-                { pos.x+1.0f, pos.y+1.0f, pos.z+1.0f,  0.6f, 0.8f, 0.4f,  1.0f, 0.0f, (float)m.right }, //7
-                { pos.x+1.0f, pos.y+0.0f, pos.z+0.0f,  0.6f, 0.8f, 0.4f,  0.0f, 1.0f, (float)m.right }, //6
-                { pos.x+1.0f, pos.y+1.0f, pos.z+0.0f,  0.6f, 0.8f, 0.4f,  0.0f, 0.0f, (float)m.right }, //3
-                { pos.x+1.0f, pos.y+0.0f, pos.z+0.0f,  0.6f, 0.8f, 0.4f,  0.0f, 1.0f, (float)m.right }, //6
-                { pos.x+1.0f, pos.y+1.0f, pos.z+1.0f,  0.6f, 0.8f, 0.4f,  1.0f, 0.0f, (float)m.right }, //7
-                { pos.x+1.0f, pos.y+0.0f, pos.z+1.0f,  0.6f, 0.8f, 0.4f,  1.0f, 1.0f, (float)m.right }, //5
-            };
-            memcpy(vertices+facesVisible * 6, face, 6*9*sizeof(float));
-            facesVisible++;
-        }
-        if (b.facesVisible[4]) // face 5
-        {
-            float face [6][9] = {
-                { pos.x+0.0f, pos.y+1.0f, pos.z+1.0f,  0.6f, 0.8f, 0.4f,  0.0f, 0.0f, (float)m.back }, //2
-                { pos.x+0.0f, pos.y+0.0f, pos.z+1.0f,  0.6f, 0.8f, 0.4f,  0.0f, 1.0f, (float)m.back }, //1
-                { pos.x+1.0f, pos.y+0.0f, pos.z+1.0f,  0.6f, 0.8f, 0.4f,  1.0f, 1.0f, (float)m.back }, //5
-                { pos.x+1.0f, pos.y+1.0f, pos.z+1.0f,  0.6f, 0.8f, 0.4f,  1.0f, 0.0f, (float)m.back }, //7
-                { pos.x+0.0f, pos.y+1.0f, pos.z+1.0f,  0.6f, 0.8f, 0.4f,  0.0f, 0.0f, (float)m.back }, //2
-                { pos.x+1.0f, pos.y+0.0f, pos.z+1.0f,  0.6f, 0.8f, 0.4f,  1.0f, 1.0f, (float)m.back }, //5
-            };
-            memcpy(vertices+facesVisible * 6, face, 6*9*sizeof(float));
-            facesVisible++;
-        }
-        if (b.facesVisible[5]) // face 6
-        {
-            float face [6][9] = {
-                { pos.x+1.0f, pos.y+1.0f, pos.z+1.0f,  0.6f, 0.8f, 0.4f,  1.0f, 0.0f, (float)m.top }, //7
-                { pos.x+1.0f, pos.y+1.0f, pos.z+0.0f,  0.6f, 0.8f, 0.4f,  1.0f, 1.0f, (float)m.top }, //3
-                { pos.x+0.0f, pos.y+1.0f, pos.z+0.0f,  0.6f, 0.8f, 0.4f,  0.0f, 1.0f, (float)m.top }, //4
-                { pos.x+1.0f, pos.y+1.0f, pos.z+1.0f,  0.6f, 0.8f, 0.4f,  1.0f, 0.0f, (float)m.top }, //7
-                { pos.x+0.0f, pos.y+1.0f, pos.z+0.0f,  0.6f, 0.8f, 0.4f,  0.0f, 1.0f, (float)m.top }, //4
-                { pos.x+0.0f, pos.y+1.0f, pos.z+1.0f,  0.6f, 0.8f, 0.4f,  0.0f, 0.0f, (float)m.top }, //2
-            };
-            memcpy(vertices+facesVisible * 6, face, 6*9*sizeof(float));
-            facesVisible++;
-        }
+            float vertices[36][9];
+            
+            int facesVisible = 0;
 
-        GLCall(glBufferSubData(GL_ARRAY_BUFFER, offset, facesVisible * 6 * 9 * sizeof(float), vertices));
-        offset += facesVisible * 6 * 9 * sizeof(float);
+            if (b.facesVisible[0]) // face 1
+            {
+                float face [6][9] = {
+                    { pos.x+0.0f, pos.y+1.0f, pos.z+1.0f,  0.6f, 0.8f, 0.4f,  1.0f, 0.0f, (float)m.front }, //2
+                    { pos.x+0.0f, pos.y+0.0f, pos.z+0.0f,  0.6f, 0.8f, 0.4f,  0.0f, 1.0f, (float)m.front }, //0
+                    { pos.x+0.0f, pos.y+0.0f, pos.z+1.0f,  0.6f, 0.8f, 0.4f,  1.0f, 1.0f, (float)m.front }, //1
+                    { pos.x+0.0f, pos.y+1.0f, pos.z+1.0f,  0.6f, 0.8f, 0.4f,  1.0f, 0.0f, (float)m.front }, //2
+                    { pos.x+0.0f, pos.y+1.0f, pos.z+0.0f,  0.6f, 0.8f, 0.4f,  0.0f, 0.0f, (float)m.front }, //4
+                    { pos.x+0.0f, pos.y+0.0f, pos.z+0.0f,  0.6f, 0.8f, 0.4f,  0.0f, 1.0f, (float)m.front } //0
+                };
+                memcpy(vertices+facesVisible * 6, face, 6*9*sizeof(float));
+                facesVisible++;
+            }
+            if (b.facesVisible[1]) // face 2 (bottom)
+            {
+                float face [6][9] = {
+                    { pos.x+1.0f, pos.y+0.0f, pos.z+1.0f,  1.0f, 1.0f, 1.0f,  1.0f, 0.0f, (float)m.bottom }, //5
+                    { pos.x+0.0f, pos.y+0.0f, pos.z+0.0f,  1.0f, 1.0f, 1.0f,  0.0f, 1.0f, (float)m.bottom }, //0
+                    { pos.x+1.0f, pos.y+0.0f, pos.z+0.0f,  1.0f, 1.0f, 1.0f,  1.0f, 1.0f, (float)m.bottom }, //6
+                    { pos.x+1.0f, pos.y+0.0f, pos.z+1.0f,  1.0f, 1.0f, 1.0f,  1.0f, 0.0f, (float)m.bottom }, //5
+                    { pos.x+0.0f, pos.y+0.0f, pos.z+1.0f,  1.0f, 1.0f, 1.0f,  0.0f, 0.0f, (float)m.bottom }, //1
+                    { pos.x+0.0f, pos.y+0.0f, pos.z+0.0f,  1.0f, 1.0f, 1.0f,  0.0f, 1.0f, (float)m.bottom }, //0
+                };
+                memcpy(vertices+facesVisible * 6, face, 6*9*sizeof(float));
+                facesVisible++;
+            }
+            if (b.facesVisible[2]) // face 3
+            {
+                float face [6][9] = {
+                    { pos.x+1.0f, pos.y+1.0f, pos.z+0.0f,  0.6f, 0.8f, 0.4f,  1.0f, 0.0f, (float)m.left }, //3
+                    { pos.x+0.0f, pos.y+0.0f, pos.z+0.0f,  0.6f, 0.8f, 0.4f,  0.0f, 1.0f, (float)m.left }, //0
+                    { pos.x+0.0f, pos.y+1.0f, pos.z+0.0f,  0.6f, 0.8f, 0.4f,  0.0f, 0.0f, (float)m.left }, //4
+                    { pos.x+0.0f, pos.y+0.0f, pos.z+0.0f,  0.6f, 0.8f, 0.4f,  0.0f, 1.0f, (float)m.left }, //0
+                    { pos.x+1.0f, pos.y+1.0f, pos.z+0.0f,  0.6f, 0.8f, 0.4f,  1.0f, 0.0f, (float)m.left }, //3
+                    { pos.x+1.0f, pos.y+0.0f, pos.z+0.0f,  0.6f, 0.8f, 0.4f,  1.0f, 1.0f, (float)m.left }, //6
+                };
+                memcpy(vertices+facesVisible * 6, face, 6*9*sizeof(float));
+                facesVisible++;
+            }
+            if (b.facesVisible[3]) // face 4
+            {
+                float face [6][9] = {
+                    { pos.x+1.0f, pos.y+1.0f, pos.z+1.0f,  0.6f, 0.8f, 0.4f,  1.0f, 0.0f, (float)m.right }, //7
+                    { pos.x+1.0f, pos.y+0.0f, pos.z+0.0f,  0.6f, 0.8f, 0.4f,  0.0f, 1.0f, (float)m.right }, //6
+                    { pos.x+1.0f, pos.y+1.0f, pos.z+0.0f,  0.6f, 0.8f, 0.4f,  0.0f, 0.0f, (float)m.right }, //3
+                    { pos.x+1.0f, pos.y+0.0f, pos.z+0.0f,  0.6f, 0.8f, 0.4f,  0.0f, 1.0f, (float)m.right }, //6
+                    { pos.x+1.0f, pos.y+1.0f, pos.z+1.0f,  0.6f, 0.8f, 0.4f,  1.0f, 0.0f, (float)m.right }, //7
+                    { pos.x+1.0f, pos.y+0.0f, pos.z+1.0f,  0.6f, 0.8f, 0.4f,  1.0f, 1.0f, (float)m.right }, //5
+                };
+                memcpy(vertices+facesVisible * 6, face, 6*9*sizeof(float));
+                facesVisible++;
+            }
+            if (b.facesVisible[4]) // face 5
+            {
+                float face [6][9] = {
+                    { pos.x+1.0f, pos.y+1.0f, pos.z+1.0f,  0.6f, 0.8f, 0.4f,  1.0f, 0.0f, (float)m.top }, //7
+                    { pos.x+1.0f, pos.y+1.0f, pos.z+0.0f,  0.6f, 0.8f, 0.4f,  1.0f, 1.0f, (float)m.top }, //3
+                    { pos.x+0.0f, pos.y+1.0f, pos.z+0.0f,  0.6f, 0.8f, 0.4f,  0.0f, 1.0f, (float)m.top }, //4
+                    { pos.x+1.0f, pos.y+1.0f, pos.z+1.0f,  0.6f, 0.8f, 0.4f,  1.0f, 0.0f, (float)m.top }, //7
+                    { pos.x+0.0f, pos.y+1.0f, pos.z+0.0f,  0.6f, 0.8f, 0.4f,  0.0f, 1.0f, (float)m.top }, //4
+                    { pos.x+0.0f, pos.y+1.0f, pos.z+1.0f,  0.6f, 0.8f, 0.4f,  0.0f, 0.0f, (float)m.top }, //2
+                };
+                memcpy(vertices+facesVisible * 6, face, 6*9*sizeof(float));
+                facesVisible++;
+            }
+            if (b.facesVisible[5]) // face 6
+            {
+                float face [6][9] = {
+                    { pos.x+1.0f, pos.y+1.0f, pos.z+1.0f,  0.6f, 0.8f, 0.4f,  1.0f, 0.0f, (float)m.back }, //7
+                    { pos.x+0.0f, pos.y+1.0f, pos.z+1.0f,  0.6f, 0.8f, 0.4f,  0.0f, 0.0f, (float)m.back }, //2
+                    { pos.x+1.0f, pos.y+0.0f, pos.z+1.0f,  0.6f, 0.8f, 0.4f,  1.0f, 1.0f, (float)m.back }, //5
+                    { pos.x+0.0f, pos.y+1.0f, pos.z+1.0f,  0.6f, 0.8f, 0.4f,  0.0f, 0.0f, (float)m.back }, //2
+                    { pos.x+0.0f, pos.y+0.0f, pos.z+1.0f,  0.6f, 0.8f, 0.4f,  0.0f, 1.0f, (float)m.back }, //1
+                    { pos.x+1.0f, pos.y+0.0f, pos.z+1.0f,  0.6f, 0.8f, 0.4f,  1.0f, 1.0f, (float)m.back }, //5
+                };
+                memcpy(vertices+facesVisible * 6, face, 6*9*sizeof(float));
+                facesVisible++;
+            }
+
+            GLCall(glBufferSubData(GL_ARRAY_BUFFER, offset, facesVisible * 6 * 9 * sizeof(float), vertices));
+            offset += facesVisible * 6 * 9 * sizeof(float);
+            
+        }
+        if (i == 0)
+        {
+            grassOffset = offset;
+        }
     }
 
     VertexBufferLayout layout;
@@ -503,12 +521,20 @@ int main(int argc, char** argv) {
         // TransparentShader.SetUniformMat4fv("MVP", camera.getMVP());
         // TransparentShader.SetUniform1i("textureSlot", 1);
 
+
+        va.Bind();
+
+        CubeShader.Bind();
+        CubeShader.SetUniformMat4fv("MVP", camera.getMVP());
+        CubeShader.SetUniform1i("textureSlot", 1);
+
+        GLCall(glDrawArrays(GL_TRIANGLES, 0, grassOffset/(9*sizeof(float))));
+
         GrassShader.Bind();
         GrassShader.SetUniformMat4fv("MVP", camera.getMVP());
         GrassShader.SetUniform1i("textureSlot", 1);
 
-        va.Bind();
-        GLCall(glDrawArrays(GL_TRIANGLES, 0, offset/6*9*sizeof(float)));
+        GLCall(glDrawArrays(GL_TRIANGLES, grassOffset/(9*sizeof(float)), (offset-grassOffset)/(9*sizeof(float))));
 
 
         // glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);

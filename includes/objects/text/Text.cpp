@@ -1,7 +1,7 @@
 #include "Text.h"
 
 Text::Text(const Font& font, std::string String)
-    : m_Projection(glm::ortho(0.0f, 1000.0f, 0.0f, 1000.0f)), m_Font(font), m_Color(1.0f, 1.0f, 1.0f),
+    : m_Projection(glm::ortho(0.0f, 1920.0f, 0.0f, 1080.0f)), m_Font(font), m_Color(1.0f, 1.0f, 1.0f),
     m_Scale(1), m_Shader("../res/shaders/TextShader.glsl")
 {}
     
