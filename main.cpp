@@ -418,9 +418,12 @@ int main(int argc, char** argv) {
                     break;
                 case SDL_WINDOWEVENT_RESIZED:
                     GLCall(glViewport(0, 0, event.window.data1, event.window.data2));
+                    std::cout << event.window.data1 << " " << event.window.data2 << '\n';
                     // camera.SetScreenSize(event.window.data1, event.window.data1);
                     // fpsCounter.SetScreenSize(event.window.data1, event.window.data2);
                     break;
+                case SDL_WINDOW_MAXIMIZED:
+                    std::cout << "maximized\n";
                 }
             break;
             case SDL_KEYDOWN:
