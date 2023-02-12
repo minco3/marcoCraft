@@ -1,71 +1,15 @@
-#define SDL_MAIN_HANDLED
+#include "includes/application/Application.h"
+#include "Game.h"
 
-#include <SDL2/SDL.h>
-#include <SDL2/SDL_image.h>
-#include <vector>
-#include <iostream>
-#include <iomanip>
-#include <fstream>
-#include <sstream>
-#include <chrono>
-#include <GL/glew.h>
-#include <GL/glu.h>
-#include <glm/glm.hpp>
-#include <map>
-#include <memory>
-#include <array>
+
 #include <filesystem>
-
-#define STB_IMAGE_IMPLEMENTATION
 #include "external/stb_image/stb_image.h"
-#include "external/SimplexNoise/SimplexNoise.h"
 
-#include "includes/opengl/Renderer.h"
-#include "includes/opengl/VertexBuffer.h"
-#include "includes/opengl/VertexBufferLayout.h"
-#include "includes/opengl/VertexArray.h"
-#include "includes/opengl/IndexBuffer.h"
-#include "includes/opengl/Shader.h"
-#include "includes/opengl/Texture2D.h"
-#include "includes/opengl/TextureArray.h"
+Game::Game()
+    : running(true), m_Instance(Application::Get())
+{
 
-#include "includes/objects/camera/Camera.h"
-#include "includes/objects/text/Text.h"
-
-#include "includes/primitives/TexturedQuad.h"
-#include "includes/primitives/TexturedCube.h"
-
-#include "includes/utils/Timer.h"
-
-int main(int argc, char** argv) {
-/*
     SimplexNoise worldgen;
-
-    const int width = 1920, height = 1080;
-
-    bool mouseVisible = true, lastMouseVisible = true;
-
-    SDL_Init(SDL_INIT_VIDEO);
-
-    SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 4);
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
-
-    SDL_Window* window = SDL_CreateWindow("Marcocraft", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, width, height, SDL_WINDOW_SHOWN | SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE);
-    SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, 0);
-    SDL_GLContext context = SDL_GL_CreateContext(window);
-
-    SDL_GL_SetSwapInterval(1); // vsync
-
-    SDL_Surface* icon;
-    SDL_RWops*  rwop;
-    rwop = SDL_RWFromFile("res/marcotriangle.png", "rb");
-    icon = IMG_LoadPNG_RW(rwop);
-    SDL_SetWindowIcon(window, icon);
-
-
-    glewInit();
-
-    {
 
     std::map<std::string, int> textureID 
     {
@@ -100,7 +44,6 @@ int main(int argc, char** argv) {
     {
         for (int z=0; z<world[x][0].size(); z++)
         {
-            // world[x][y][z] = 0;
             float val = worldgen.fractal(3, x/100.f, z/100.f);
             int height = 64 + val*20;
             for (int y=0; y<world[x].size(); y++)
@@ -232,8 +175,8 @@ int main(int argc, char** argv) {
     // GLCall(glGenerateMipmap(GL_TEXTURE_2D_ARRAY));
 
     Text fpsCounter(font);
-    fpsCounter.setPosition(glm::vec2(100,height-100));
-    fpsCounter.SetScreenSize(width, height);
+    fpsCounter.setPosition(glm::vec2(100, m_Instance.m_Height-100));
+    fpsCounter.SetScreenSize(m_Instance.m_Width, m_Instance.m_Height);
 
     glClearColor(0.0f, 0.0f, 0.4f, 0.0f);
 
@@ -245,20 +188,18 @@ int main(int argc, char** argv) {
 
     double lastTime = SDL_GetTicks64(), currentTime = lastTime;
 
-    Camera camera;
-    camera.SetScreenSize(width, height);
-    camera.setPosition(glm::vec3(0, 65, 0));
+    m_Camera.SetScreenSize(m_Instance.m_Width, m_Instance.m_Height);
+    m_Camera.setPosition(glm::vec3(0, 65, 0));
 
     std::chrono::high_resolution_clock::time_point p1, p2;
     std::chrono::duration<double> duration;
 
     Timer bufferFillTimer("Buffer filling");
 
-    VertexArray va;
-    va.Bind();
+    m_va.Bind();
 
-    VertexBuffer vb(128*64*128*9*36*sizeof(float));
-    vb.Bind();
+    m_vb(128*64*128*9*36*sizeof(float));
+    m_vb.Bind();
     
     int offset = 0, grassOffset = 0;
 
@@ -369,200 +310,139 @@ int main(int argc, char** argv) {
     layout.Push(GL_FLOAT, 3);
     layout.Push(GL_FLOAT, 3);
 
-    va.AddBuffer(vb, layout);
+    m_va.AddBuffer(vb, layout);
 
     bufferFillTimer.Stop();
-    
 
-    // for (int x=0; x<world.size(); x++)
-    // {
-    //     for (int y=0; y<world[x].size(); y++)
-    //     {
-    //         for (int z=0; z<world[x][y].size(); z++)
-    //         {
-    //             if (!world[x][y][z]) continue;
+}
 
-    //             std::shared_ptr<Cube> c(new Cube);
-    //             c->UpdateBuffer(glm::vec3(x, y, z), glm::vec3(1, 1, 1), glm::vec2(), glm::vec2(), models.at(world[x][y][z]));
-
-    //             if (world[x][y][z] == 1 || world[x][y][z] == 2) // stone / dirt
-    //             {
-    //                 solidBlocks.push_back(std::move(c));
-    //             }
-    //             else if (world[x][y][z] == 3) // grass
-    //             {
-    //                 grassBlocks.push_back(std::move(c));
-    //             }
-    //             else
-    //             {
-    //                 transparentBlocks.push_back(std::move(c));
-    //             }
-    //         }
-    //     }
-    // }
-
-    while (running) {
-        lastTime = currentTime;
-        currentTime = SDL_GetTicks64();
-        float deltaTime = float(currentTime - lastTime);
-
-        //process all events
-        while (SDL_PollEvent(&event)) {
-            switch(event.type) {
-            case SDL_WINDOWEVENT:
-                switch(event.window.event) {
-                case SDL_WINDOWEVENT_CLOSE:
-                    running = false;
-                    break;
-                case SDL_WINDOWEVENT_ENTER:
-                    mouseVisible = false;
-                    break;
-                case SDL_WINDOWEVENT_LEAVE:
-                    mouseVisible = true;
-                    break;
-                case SDL_WINDOWEVENT_RESIZED:
-                    GLCall(glViewport(0, 0, event.window.data1, event.window.data2));
-                    std::cout << event.window.data1 << " " << event.window.data2 << '\n';
-                    // camera.SetScreenSize(event.window.data1, event.window.data1);
-                    // fpsCounter.SetScreenSize(event.window.data1, event.window.data2);
-                    break;
-                case SDL_WINDOW_MAXIMIZED:
-                    std::cout << "maximized\n";
-                }
-            break;
-            case SDL_KEYDOWN:
-            if (event.key.repeat) break;
-                switch(event.key.keysym.sym) {
-                case SDLK_w:
-                    camera.forward = true;
-                    break;
-                case SDLK_d:
-                    camera.right = true;
-                    break;
-                case SDLK_s:
-                    camera.back = true;
-                    break;
-                case SDLK_a:
-                    camera.left = true;
-                    break;
-                case SDLK_SPACE:
-                    camera.up = true;
-                    break;
-                case SDLK_c:
-                    camera.down = true;
-                    break;
-                case SDLK_LSHIFT:
-                    camera.sprint = true;
-                    break;
-                case SDLK_LALT:
-                    if (!fullscreen) mouseVisible = !mouseVisible;
-                    break;
-                case SDLK_F3:
-                    debug_fps = !debug_fps;
-                    break;
-                case SDLK_F11:
-                    SDL_SetWindowFullscreen(window, fullscreen ? 0 : SDL_WINDOW_FULLSCREEN_DESKTOP);
-                    fullscreen = !fullscreen;
-                    break;
-                }
-            break;
-            case SDL_KEYUP:
-                switch(event.key.keysym.sym) {
-                case SDLK_w:
-                    camera.forward = false;
-                    break;
-                case SDLK_d:
-                    camera.right = false;
-                    break;
-                case SDLK_s:
-                    camera.back = false;
-                    break;
-                case SDLK_a:
-                    camera.left = false;
-                    break;
-                case SDLK_SPACE:
-                    camera.up = false;
-                    break;
-                case SDLK_c:
-                    camera.down = false;
-                    break;
-                case SDLK_LSHIFT:
-                    camera.sprint = false;
-                    break;
-                }
+void Game::Event()
+{
+    SDL_Event event;
+    while (SDL_PollEvent(&event)) {
+        switch(event.type) {
+        case SDL_WINDOWEVENT:
+            switch(event.window.event) {
+            case SDL_WINDOWEVENT_CLOSE:
+                running = false;
                 break;
-            case SDL_MOUSEMOTION:
-                if (!mouseVisible) {
-                    camera.look(event.motion.xrel, event.motion.yrel);
-                }
+            case SDL_WINDOWEVENT_ENTER:
+                mouseVisible = false;
+                break;
+            case SDL_WINDOWEVENT_LEAVE:
+                mouseVisible = true;
+                break;
+            case SDL_WINDOWEVENT_RESIZED:
+                GLCall(glViewport(0, 0, event.window.data1, event.window.data2));
+                std::cout << event.window.data1 << " " << event.window.data2 << '\n';
+                // m_Camera.SetScreenSize(event.window.data1, event.window.data1);
+                // fpsCounter.SetScreenSize(event.window.data1, event.window.data2);
+                break;
+            case SDL_WINDOW_MAXIMIZED:
+                std::cout << "maximized\n";
+            }
+        break;
+        case SDL_KEYDOWN:
+        if (event.key.repeat) break;
+            switch(event.key.keysym.sym) {
+            case SDLK_w:
+                m_Camera.forward = true;
+                break;
+            case SDLK_d:
+                m_Camera.right = true;
+                break;
+            case SDLK_s:
+                m_Camera.back = true;
+                break;
+            case SDLK_a:
+                m_Camera.left = true;
+                break;
+            case SDLK_SPACE:
+                m_Camera.up = true;
+                break;
+            case SDLK_c:
+                m_Camera.down = true;
+                break;
+            case SDLK_LSHIFT:
+                m_Camera.sprint = true;
+                break;
+            case SDLK_LALT:
+                if (!fullscreen)
+                {
+                    mouseVisible = !mouseVisible;
+                    SDL_SetRelativeMouseMode(mouseVisible ?  SDL_FALSE : SDL_TRUE);
+                } 
+                break;
+            case SDLK_F3:
+                debug_fps = !debug_fps;
+                break;
+            case SDLK_F11:
+                SDL_SetWindowFullscreen(m_Instance.m_Window, fullscreen ? 0 : SDL_WINDOW_FULLSCREEN_DESKTOP);
+                fullscreen = !fullscreen;
                 break;
             }
+        break;
+        case SDL_KEYUP:
+            switch(event.key.keysym.sym) {
+            case SDLK_w:
+                m_Camera.forward = false;
+                break;
+            case SDLK_d:
+                m_Camera.right = false;
+                break;
+            case SDLK_s:
+                m_Camera.back = false;
+                break;
+            case SDLK_a:
+                m_Camera.left = false;
+                break;
+            case SDLK_SPACE:
+                m_Camera.up = false;
+                break;
+            case SDLK_c:
+                m_Camera.down = false;
+                break;
+            case SDLK_LSHIFT:
+                m_Camera.sprint = false;
+                break;
+            }
+            break;
+        case SDL_MOUSEMOTION:
+            if (!mouseVisible) {
+                m_Camera.look(event.motion.xrel, event.motion.yrel);
+            }
+            break;
         }
+    }
+}
 
-        if (lastMouseVisible != mouseVisible) {
-            SDL_SetRelativeMouseMode(mouseVisible ?  SDL_FALSE : SDL_TRUE);
-            lastMouseVisible = mouseVisible;             
-        }
+void Game::Update()
+{
+    m_Camera.move(m_Instance.m_LastFrameTime);
 
-        camera.move(deltaTime);
+}
 
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+void Game::Render()
+{
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        textureArray.Bind();
+    m_TextureArray.Bind();
 
+    m_va.Bind();
 
+    CubeShader.Bind();
+    CubeShader.SetUniformMat4fv("MVP", camera.getMVP());
+    CubeShader.SetUniform1i("textureSlot", 1);
 
-        // CubeShader.Bind();
-        // CubeShader.SetUniformMat4fv("MVP", camera.getMVP());
-        // CubeShader.SetUniform1i("textureSlot", 1);
+    GLCall(glDrawArrays(GL_TRIANGLES, 0, grassOffset/(9*sizeof(float))));
 
-        // for (const auto& b : solidBlocks)
-        // {
-        //     b->Bind();
-        //     GLCall(glDrawArrays(GL_TRIANGLES, 0, b->IndexCount()));
-        // }
+    GrassShader.Bind();
+    GrassShader.SetUniformMat4fv("MVP", camera.getMVP());
+    GrassShader.SetUniform1i("textureSlot", 1);
 
-        // GrassShader.Bind();
-        // GrassShader.SetUniformMat4fv("MVP", camera.getMVP());
-        // GrassShader.SetUniform1i("textureSlot", 1);
+    GLCall(glDrawArrays(GL_TRIANGLES, grassOffset/(9*sizeof(float)), (offset-grassOffset)/(9*sizeof(float))));
 
-        // for (const auto& b : grassBlocks)
-        // {
-        //     b->Bind();
-        //     GLCall(glDrawArrays(GL_TRIANGLES, 0, b->IndexCount()));
-        // }
-
-        // TransparentShader.Bind();
-        // TransparentShader.SetUniformMat4fv("MVP", camera.getMVP());
-        // TransparentShader.SetUniform1i("textureSlot", 1);
-
-
-        va.Bind();
-
-        CubeShader.Bind();
-        CubeShader.SetUniformMat4fv("MVP", camera.getMVP());
-        CubeShader.SetUniform1i("textureSlot", 1);
-
-        GLCall(glDrawArrays(GL_TRIANGLES, 0, grassOffset/(9*sizeof(float))));
-
-        GrassShader.Bind();
-        GrassShader.SetUniformMat4fv("MVP", camera.getMVP());
-        GrassShader.SetUniform1i("textureSlot", 1);
-
-        GLCall(glDrawArrays(GL_TRIANGLES, grassOffset/(9*sizeof(float)), (offset-grassOffset)/(9*sizeof(float))));
-
-
-        // glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-        // for (const auto& b : transparentBlocks)
-        // {
-        //     b->Bind();
-        //     GLCall(glDrawArrays(GL_TRIANGLES, 0, b->IndexCount()));
-        // }
-
-        // glBlendFunc(GL_ONE, GL_ZERO);
-
-        if (debug_fps) {
+    if (debug_fps) {
             using namespace std::chrono_literals;
             if (std::chrono::high_resolution_clock::now() > p1+500ms) {
                 fpsProfileFrame = 1;
@@ -575,21 +455,9 @@ int main(int argc, char** argv) {
             }
             fpsCounter.RenderText();
         }
-        p2 = std::chrono::high_resolution_clock::now();
+    p2 = std::chrono::high_resolution_clock::now();
 
         
-        SDL_GL_SwapWindow(window);
-    }
+    SDL_GL_SwapWindow(window);
 
-    }
-
-    SDL_GL_DeleteContext(context);
-    SDL_DestroyWindow(window);
-    SDL_Quit();
-*/
-
-Application::Run();
-
-    return 0;
 }
-

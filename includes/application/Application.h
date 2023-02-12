@@ -34,17 +34,30 @@
 
 #include "includes/utils/Timer.h"
 
+#include "includes/game/Game.h"
+
 class Application
 {
+friend class Game; // could maybe do this better
 public:
-    Application();
-
-    void Run();
 
     static Application& Get() { return *s_Instance; }
+    static void Run() { Get().RunImpl(); }
 
 private:
+    Application();
+    ~Application();
+
+    void RunImpl();
+
+
     static Application* s_Instance;
 
-    
+    int m_Width;
+    int m_Height;
+    float m_LastFrameTime;
+    SDL_Window* m_Window;
+    SDL_Renderer* m_Renderer;
+    SDL_GLContext m_Context;
+
 };

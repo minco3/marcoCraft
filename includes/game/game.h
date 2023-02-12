@@ -1,16 +1,30 @@
 #pragma once
 
+class Application;
+class Camera;
+class TextureArray;
+class VertexArray;
+class VertexBuffer;
+
+
 class Game {
 public:
-Game() {
 
-}
+Game();
 
-void run() {
-}
+void Event();
+void Update();
+void Render();
+
+bool isRunning() {return running;}
 
 private:
+    bool running;
+    Application& m_Instance;
+    Camera m_Camera;
 
 
-
+    bool mouseVisible;
+    bool fullscreen;
+    bool debug_fps;
 };

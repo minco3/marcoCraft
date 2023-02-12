@@ -5,7 +5,7 @@
 class TextureArray
 {
 public:
-    TextureArray();
+    TextureArray(GLuint format);
     ~TextureArray();
 
     void Bind() const;

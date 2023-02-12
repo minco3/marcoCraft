@@ -1,10 +1,11 @@
 #include "TextureArray.h"
 
-TextureArray::TextureArray() 
+TextureArray::TextureArray(GLuint format) 
+    : m_InternalFormat(format)
 {
     GLCall(glGenTextures(1, &m_RendererID));
     Bind();
-    GLCall(glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_NEAREST));
+    GLCall(glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_NEAREST));
     GLCall(glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_NEAREST));
 }
 

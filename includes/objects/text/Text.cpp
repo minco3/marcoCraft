@@ -29,6 +29,7 @@ void Text::SetScreenSize(int width, int height)
 
 void Text::RenderText()
 {
+    glDisable(GL_DEPTH_TEST);
     m_Quad.Bind();
     m_Quad.BindVB();
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -61,4 +62,5 @@ void Text::RenderText()
     }
 
     glBlendFunc(GL_ONE, GL_ZERO);
+    glEnable(GL_DEPTH_TEST);
 }
