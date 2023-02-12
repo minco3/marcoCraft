@@ -7,8 +7,8 @@
 #include <glm/gtc/matrix_transform.hpp>
 
 #include "Font.h"
-#include "../../opengl/VertexArray.h"
-#include "../../primitives/TexturedQuad.h"
+#include "includes/opengl/VertexArray.h"
+#include "includes/primitives/TexturedQuad.h"
 
 class Text
 {

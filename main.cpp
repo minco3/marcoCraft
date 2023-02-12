@@ -19,7 +19,7 @@
 #include "external/stb_image/stb_image.h"
 #include "external/SimplexNoise/SimplexNoise.h"
 
-#include "includes/opengl/renderer.h"
+#include "includes/opengl/Renderer.h"
 #include "includes/opengl/VertexBuffer.h"
 #include "includes/opengl/VertexBufferLayout.h"
 #include "includes/opengl/VertexArray.h"
@@ -28,7 +28,7 @@
 #include "includes/opengl/Texture2D.h"
 #include "includes/opengl/TextureArray.h"
 
-#include "includes/objects/camera/camera.h"
+#include "includes/objects/camera/Camera.h"
 #include "includes/objects/text/Text.h"
 
 #include "includes/primitives/TexturedQuad.h"
@@ -188,27 +188,21 @@ int main(int argc, char** argv) {
     glEnable(GL_BLEND);
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 
-    Shader SimpleShader("../res/shaders/SimpleShader.glsl");
-    Shader FlatShader("../res/shaders/FlatShader.glsl");
-    Shader CubeShader("../res/shaders/CubeShader.glsl");
-    Shader GrassShader("../res/shaders/GrassShader.glsl");
-    Shader TransparentShader("../res/shaders/TransparentShader.glsl");
+    Shader SimpleShader("res/shaders/SimpleShader.glsl");
+    Shader FlatShader("res/shaders/FlatShader.glsl");
+    Shader CubeShader("res/shaders/CubeShader.glsl");
+    Shader GrassShader("res/shaders/GrassShader.glsl");
+    Shader TransparentShader("res/shaders/TransparentShader.glsl");
 
-    Font font("../res/arial.ttf", 48);
-
-    Quad quad;
-
-    Cube cube;
-
-    cube.UpdateBuffer(glm::vec3(), glm::vec3(), glm::vec2(), glm::vec2(), models.at(1));
+    Font font("res/arial.ttf", 48);
 
     int x, y, bits;
-    unsigned char* stoneData = stbi_load("../res/stone.png", &x, &y, &bits, 4);
-    unsigned char* dirtData = stbi_load("../res/dirt.png", &x, &y, &bits, 4);
-    unsigned char* grassSideData = stbi_load("../res/grass_block_side.png", &x, &y, &bits, 4);
-    unsigned char* grassTopData = stbi_load("../res/grass_block_top.png", &x, &y, &bits, 4);
-    unsigned char* grassOverlayData = stbi_load("../res/grass_block_side_overlay.png", &x, &y, &bits, 4);
-    unsigned char* glassData = stbi_load("../res/glass.png", &x, &y, &bits, 4);
+    unsigned char* stoneData = stbi_load("res/stone.png", &x, &y, &bits, 4);
+    unsigned char* dirtData = stbi_load("res/dirt.png", &x, &y, &bits, 4);
+    unsigned char* grassSideData = stbi_load("res/grass_block_side.png", &x, &y, &bits, 4);
+    unsigned char* grassTopData = stbi_load("res/grass_block_top.png", &x, &y, &bits, 4);
+    unsigned char* grassOverlayData = stbi_load("res/grass_block_side_overlay.png", &x, &y, &bits, 4);
+    unsigned char* glassData = stbi_load("res/glass.png", &x, &y, &bits, 4);
 
     GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE));
     GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE));

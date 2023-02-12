@@ -1,8 +1,8 @@
 #pragma once
 
-#include "../opengl/VertexArray.h"
-#include "../opengl/VertexBuffer.h"
-#include "../opengl/IndexBuffer.h"
+#include "includes/opengl/VertexArray.h"
+#include "includes/opengl/VertexBuffer.h"
+#include "includes/opengl/IndexBuffer.h"
 
 class Quad
 {

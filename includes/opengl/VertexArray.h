@@ -1,6 +1,6 @@
 #pragma once
 
-#include "renderer.h"
+#include "Renderer.h"
 #include "VertexBuffer.h"
 #include "VertexBufferLayout.h"
 

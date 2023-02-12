@@ -5,9 +5,9 @@
 #include <ft2build.h>
 #include <freetype/freetype.h>
 
-#include "../../opengl/Shader.h"
-#include "../../utils/TextureAtlas.h"
-#include "../../primitives/TexturedQuad.h"
+#include "includes/opengl/Shader.h"
+#include "includes/utils/TextureAtlas.h"
+#include "includes/primitives/TexturedQuad.h"
 
 struct Character
 {

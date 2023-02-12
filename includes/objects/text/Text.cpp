@@ -2,7 +2,7 @@
 
 Text::Text(const Font& font, std::string String)
     :m_Font(font), m_Color(1.0f, 1.0f, 1.0f),
-    m_Scale(1), m_Shader("../res/shaders/TextShader.glsl")
+    m_Scale(1), m_Shader("res/shaders/TextShader.glsl")
 {}
     
 void Text::SetString(std::string string)
