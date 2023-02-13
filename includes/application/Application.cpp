@@ -48,7 +48,7 @@ void Application::Run()
         game.Update();
         game.Draw();
         std::chrono::duration<double> duration(p1-p2);
-        m_LastFrameTime = duration.count();
+        m_LastFrameTime = duration.count()/100000000; // convert to S
         p2 = p1;
     }
 }

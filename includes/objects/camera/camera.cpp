@@ -3,11 +3,11 @@
 #include <iostream>
 
 Camera::Camera() 
-    : m_cameraFront(0.0f, 0.0f, -1.0f), m_cameraPos(0.0f, 0.5f, 3.0f), m_cameraUp(0.0f, 1.0f, 0.0f) {}
+    : m_cameraFront(1.0f, 0.0f, 0.0f), m_cameraPos(0.0f, 0.5f, 0.0f), m_cameraUp(0.0f, 1.0f, 0.0f) {}
 
 void Camera::move(float deltaTime)
 {
-    std::cout << deltaTime << "\n";
+    // std::cout << deltaTime << "\n";
     glm::vec3 cameraVelocity(0.0f, 0.0f, 0.0f);
     if (back) cameraVelocity -= m_cameraFront;
     if (forward) cameraVelocity += m_cameraFront;
@@ -30,6 +30,7 @@ void Camera::look(Sint32 xrel, Sint32 yrel)
                   m_cameraFront.y-yrel/sensitivity,
                   m_cameraFront.x*sin(xrel/sensitivity)+m_cameraFront.z*cos(xrel/sensitivity))
     );
+    std::cout << m_cameraFront.x << " " << m_cameraFront.z << "\n";
 }
 
 void Camera::setPosition(glm::vec3 position)

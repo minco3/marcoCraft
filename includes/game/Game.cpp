@@ -155,7 +155,6 @@ Game::Game()
         m_ShaderLibrary.Load(entry.path().string());
     }
     
-
     Font font("res/arial.ttf", 48);
 
     std::filesystem::path texturedir = std::filesystem::current_path() += "/res/texture";
@@ -426,12 +425,14 @@ void Game::Draw()
     m_VertexArray.Bind();
 
     std::shared_ptr<Shader> CubeShader = m_ShaderLibrary.Get("CubeShader");
+    CubeShader->Bind();
     CubeShader->SetUniformMat4fv("MVP", m_Camera.getMVP());
     CubeShader->SetUniform1i("textureSlot", 1);
 
     GLCall(glDrawArrays(GL_TRIANGLES, 0, grassOffset/(9*sizeof(float))));
 
     std::shared_ptr<Shader> GrassShader = m_ShaderLibrary.Get("GrassShader");
+    GrassShader->Bind();
     GrassShader->SetUniformMat4fv("MVP", m_Camera.getMVP());
     GrassShader->SetUniform1i("textureSlot", 1);
 
