@@ -7,6 +7,7 @@ class VertexArray;
 class VertexBuffer;
 class FrameCounter;
 
+#include "World.h"
 
 class Game {
 public:
@@ -27,6 +28,8 @@ private:
     VertexArray m_VertexArray;
     TextureArray m_TextureArray;
     ShaderLibrary m_ShaderLibrary;
+
+    World m_World;
 
     int grassOffset;
     int offset;

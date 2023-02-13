@@ -30,7 +30,6 @@ void Camera::look(Sint32 xrel, Sint32 yrel)
                   m_cameraFront.y-yrel/sensitivity,
                   m_cameraFront.x*sin(xrel/sensitivity)+m_cameraFront.z*cos(xrel/sensitivity))
     );
-    std::cout << m_cameraFront.x << " " << m_cameraFront.z << "\n";
 }
 
 void Camera::setPosition(glm::vec3 position)

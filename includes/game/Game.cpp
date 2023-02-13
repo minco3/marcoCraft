@@ -36,97 +36,74 @@ Game::Game()
         int model;
     };
 
-    std::vector<std::shared_ptr<Cube>> solidBlocks, grassBlocks, transparentBlocks;
-
-    std::array<std::array<std::array<int, 16>, 128>, 16> world;
-
-    Timer worldgenTimer("Worldgen");
-
-    for (int x=0; x<world.size(); x++)
+    for (int x=-1; x<=1; x++)
     {
-        for (int z=0; z<world[x][0].size(); z++)
+        for (int z=-1; z<=1; z++)
         {
-            float val = worldgen.fractal(3, x/100.f, z/100.f);
-            int height = 64 + val*20;
-            for (int y=0; y<world[x].size(); y++)
-            {
-                if (y <= height-2)
-                {
-                    world[x][y][z] = 1;
-                }
-                else if (y == height-1)
-                {
-                    world[x][y][z] = 2;
-                }
-                else if (y == height)
-                {
-                    world[x][y][z] = 3;
-                }
-                else
-                {
-                    world[x][y][z] = 0;
-                }
-            }
+            m_World.GenerateChunk({x,z});
         }
     }
 
-    worldgenTimer.Stop();
+    std::vector<std::shared_ptr<Cube>> solidBlocks, grassBlocks, transparentBlocks;
 
     std::vector<Block> visibleBlocks[2];
 
     Timer invisibleCullingTimer("Invisible face culling");
 
-    for (int x=0; x<world.size(); x++)
+    for (const Chunk& chunk : m_World.Chunks())
     {
-        for (int y=0; y<world[x].size(); y++)
+        for (int x=0; x<chunk.data.size(); x++)
         {
-            for (int z=0; z<world[x][y].size(); z++)
+            for (int y=0; y<chunk.data[x].size(); y++)
             {
-                bool isVisible = false; 
-                std::array<bool, 6> faces{false};
+                for (int z=0; z<chunk.data[x][y].size(); z++)
+                {
+                    bool isVisible = false; 
+                    std::array<bool, 6> faces{false};
 
-                if (!world[x][y][z]) continue;
-                
-                if (x==0 || !world[x-1][y][z])
-                {
-                    isVisible = true;
-                    faces[0] = true;
-                }
-                if (y==0 || !world[x][y-1][z])
-                {
-                    isVisible = true;
-                    faces[1] = true;
-                }
-                if (z==0 || !world[x][y][z-1])
-                {
-                    isVisible = true;
-                    faces[2] = true;
-                }
-                if (x==world.size()-1 || !world[x+1][y][z])
-                {
-                    isVisible = true;
-                    faces[3] = true;
-                }
-                if (y==world[0].size()-1 || !world[x][y+1][z])
-                {
-                    isVisible = true;
-                    faces[4] = true;
-                }
-                if (z==world[0][0].size()-1 || !world[x][y][z+1])
-                {
-                    isVisible = true;
-                    faces[5] = true;
-                }
-                
-                if (isVisible)
-                {
-                    // grass
-                    if (world[x][y][z] == 3) {
-                        visibleBlocks[1].push_back({faces, {x,y,z}, world[x][y][z]});
-                    }
-                    else
+                    if (!chunk.data[x][y][z]) continue;
+                    
+                    if (x==0 || !chunk.data[x-1][y][z])
                     {
-                        visibleBlocks[0].push_back({faces, {x,y,z}, world[x][y][z]});
+                        isVisible = true;
+                        faces[0] = true;
+                    }
+                    if (y==0 || !chunk.data[x][y-1][z])
+                    {
+                        isVisible = true;
+                        faces[1] = true;
+                    }
+                    if (z==0 || !chunk.data[x][y][z-1])
+                    {
+                        isVisible = true;
+                        faces[2] = true;
+                    }
+                    if (x==chunk.data.size()-1 || !chunk.data[x+1][y][z])
+                    {
+                        isVisible = true;
+                        faces[3] = true;
+                    }
+                    if (y==chunk.data[0].size()-1 || !chunk.data[x][y+1][z])
+                    {
+                        isVisible = true;
+                        faces[4] = true;
+                    }
+                    if (z==chunk.data[0][0].size()-1 || !chunk.data[x][y][z+1])
+                    {
+                        isVisible = true;
+                        faces[5] = true;
+                    }
+                    
+                    if (isVisible)
+                    {
+                        // grass
+                        if (chunk.data[x][y][z] == 3) {
+                            visibleBlocks[1].push_back({faces, {chunk.pos.x*16+x,y,chunk.pos.y*16+z}, chunk.data[x][y][z]});
+                        }
+                        else
+                        {
+                            visibleBlocks[0].push_back({faces, {chunk.pos.x*16+x,y,chunk.pos.y*16+z}, chunk.data[x][y][z]});
+                        }
                     }
                 }
             }
