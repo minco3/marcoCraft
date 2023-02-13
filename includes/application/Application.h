@@ -1,5 +1,7 @@
 #pragma once
 
+#define SDL_MAIN_HANDLED
+
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
 #include <vector>
@@ -28,6 +30,7 @@
 
 #include "includes/objects/camera/Camera.h"
 #include "includes/objects/text/Text.h"
+#include "includes/objects/frameCounter/FrameCounter.h"
 
 #include "includes/primitives/TexturedQuad.h"
 #include "includes/primitives/TexturedCube.h"
@@ -36,20 +39,18 @@
 
 #include "includes/game/Game.h"
 
+
 class Application
 {
 friend class Game; // could maybe do this better
 public:
-
     static Application& Get() { return *s_Instance; }
-    static void Run() { Get().RunImpl(); }
 
-private:
     Application();
     ~Application();
+    void Run();
 
-    void RunImpl();
-
+private:
 
     static Application* s_Instance;
 

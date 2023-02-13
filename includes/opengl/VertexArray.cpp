@@ -20,11 +20,14 @@ void VertexArray::Unbind() const
     GLCall(glBindVertexArray(0));
 }
 
-void VertexArray::AddBuffer(const VertexBuffer& vb, const VertexBufferLayout& layout) {
+void VertexArray::AddBuffer(const std::shared_ptr<VertexBuffer>& vertexBuffer, const VertexBufferLayout& layout) {
+   
     Bind();
-    vb.Bind();
+    vertexBuffer->Bind();
     const auto& elements = layout.GetElements();
+
     uint64_t offset = 0;
+
     for (int i = 0; i < elements.size(); i++)
     {
         const auto& element = elements[i];
@@ -34,4 +37,5 @@ void VertexArray::AddBuffer(const VertexBuffer& vb, const VertexBufferLayout& la
         offset += element.count * VertexBufferElement::SizeOfType(element.type);
     }
 
+    m_VertexBuffers.push_back(vertexBuffer);
 }

@@ -1,10 +1,13 @@
 #include "Camera.h"
 
+#include <iostream>
+
 Camera::Camera() 
     : m_cameraFront(0.0f, 0.0f, -1.0f), m_cameraPos(0.0f, 0.5f, 3.0f), m_cameraUp(0.0f, 1.0f, 0.0f) {}
 
 void Camera::move(float deltaTime)
 {
+    std::cout << deltaTime << "\n";
     glm::vec3 cameraVelocity(0.0f, 0.0f, 0.0f);
     if (back) cameraVelocity -= m_cameraFront;
     if (forward) cameraVelocity += m_cameraFront;

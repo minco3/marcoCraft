@@ -29,7 +29,7 @@ public:
 private:
 
     VertexArray m_VertexArray;
-    VertexBuffer m_VertexBuffer;
+    std::shared_ptr<VertexBuffer> m_VertexBuffer;
 
 };
 

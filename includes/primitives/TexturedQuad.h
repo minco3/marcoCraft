@@ -19,7 +19,7 @@ public:
 private:
 
     VertexArray m_VertexArray;
-    VertexBuffer m_VertexBuffer;
+    std::shared_ptr<VertexBuffer> m_VertexBuffer;
     IndexBuffer m_IndexBuffer;
 
     constexpr static const unsigned int quadIndices[6] = {

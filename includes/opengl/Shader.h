@@ -5,9 +5,10 @@
 #include <fstream>
 #include <string>
 #include <sstream>
+#include <unordered_map>
+#include <memory>
 
 #include "Renderer.h"
-
 
 class Shader
 {
@@ -29,4 +30,18 @@ private:
     GLuint CompileShader();
     GLuint m_RendererID;
     std::string m_FilePath;
+};
+
+class ShaderLibrary
+{
+public:
+    std::shared_ptr<Shader> Load(const std::string& name, const std::string& filepath);
+    std::shared_ptr<Shader> Load(const std::string& filepath);
+
+    std::shared_ptr<Shader> Get(const std::string& name);
+
+    bool Exists(const std::string& name) const;
+
+private:
+    std::unordered_map<std::string, std::shared_ptr<Shader>> m_Shaders;
 };

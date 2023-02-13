@@ -1,5 +1,7 @@
 #include "Shader.h"
 
+#include <filesystem>
+
 Shader::Shader(const std::string& filepath)
     : m_FilePath(filepath), m_RendererID(0)
 {
@@ -129,4 +131,29 @@ GLuint Shader::CompileShader()
 
     return ProgramID;
 
+}
+
+
+std::shared_ptr<Shader> ShaderLibrary::Load(const std::string& name, const std::string& filepath)
+{
+    m_Shaders.insert({name, std::make_shared<Shader>(filepath)});
+    return Get(name);
+}
+
+std::shared_ptr<Shader> ShaderLibrary::Load(const std::string& filepath)
+{
+    std::filesystem::path path(filepath);
+    return Load(path.stem().string(), filepath);
+}
+
+
+std::shared_ptr<Shader> ShaderLibrary::Get(const std::string& name)
+{
+    assert(Exists(name));
+    return m_Shaders.at(name);
+}
+
+bool ShaderLibrary::Exists(const std::string& name) const
+{
+    return m_Shaders.count(name);
 }

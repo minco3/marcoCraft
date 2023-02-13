@@ -1,13 +1,15 @@
 #include "includes/application/Application.h"
 #include "Game.h"
 
-
 #include <filesystem>
+
+#define STB_IMAGE_IMPLEMENTATION
 #include "external/stb_image/stb_image.h"
 
 Game::Game()
-    : running(true), m_Instance(Application::Get())
+    : running(true), m_TextureArray(GL_RGBA), grassOffset(0), offset(0)
 {
+    mouseVisible = true;
 
     SimplexNoise worldgen;
 
@@ -143,28 +145,31 @@ Game::Game()
     glEnable(GL_BLEND);
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 
-    Shader SimpleShader("res/shaders/SimpleShader.glsl");
-    Shader FlatShader("res/shaders/FlatShader.glsl");
-    Shader CubeShader("res/shaders/CubeShader.glsl");
-    Shader GrassShader("res/shaders/GrassShader.glsl");
-    Shader TransparentShader("res/shaders/TransparentShader.glsl");
+    std::filesystem::path rootdir = std::filesystem::current_path();
+    
+    std::filesystem::path shaderdir = std::filesystem::current_path() += "/res/shaders";
+
+    for (auto const& entry : std::filesystem::directory_iterator(shaderdir))
+    {
+        std::cout << "loading shader " << entry.path().stem().string() << std::endl;
+        m_ShaderLibrary.Load(entry.path().string());
+    }
+    
 
     Font font("res/arial.ttf", 48);
 
-    std::filesystem::path rootdir = std::filesystem::current_path() += "/res/texture";
-    std::filesystem::directory_iterator rootdir_iter (rootdir);
+    std::filesystem::path texturedir = std::filesystem::current_path() += "/res/texture";
+    std::filesystem::directory_iterator texturedir_iter (texturedir);
 
-    int textureCount = std::distance(rootdir_iter, {}); // count the number of textures to load
+    int textureCount = std::distance(texturedir_iter, {}); // count the number of textures to load
 
-
-    TextureArray textureArray(GL_RGBA);
-    textureArray.Resize(glm::vec3(16,16,textureCount));
-    for (auto const& entry : std::filesystem::directory_iterator(rootdir))
+    m_TextureArray.Resize(glm::vec3(16,16,textureCount));
+    for (auto const& entry : std::filesystem::directory_iterator(texturedir))
     {
         int x, y, bits;
-        // std::cout << "loading texture " << entry.path().stem().string() << std::endl;
+        std::cout << "loading texture " << entry.path().stem().string() << std::endl;
         unsigned char* data = stbi_load(entry.path().string().c_str(), &x, &y, &bits, 4);
-        textureArray.SetData(glm::vec2(0, 0), textureID.at(entry.path().stem().string()), glm::vec2(16,16), data);
+        m_TextureArray.SetData(glm::vec2(0, 0), textureID.at(entry.path().stem().string()), glm::vec2(16,16), data);
     }
 
     GLCall(glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE));
@@ -175,20 +180,12 @@ Game::Game()
     // GLCall(glGenerateMipmap(GL_TEXTURE_2D_ARRAY));
 
     Text fpsCounter(font);
-    fpsCounter.setPosition(glm::vec2(100, m_Instance.m_Height-100));
-    fpsCounter.SetScreenSize(m_Instance.m_Width, m_Instance.m_Height);
+    fpsCounter.setPosition(glm::vec2(100, Application::Get().m_Height-100));
+    fpsCounter.SetScreenSize(Application::Get().m_Width, Application::Get().m_Height);
 
     glClearColor(0.0f, 0.0f, 0.4f, 0.0f);
 
-    SDL_Event event;
-    bool running = true, debug_fps = true, fullscreen = false;
-
-    int fpsProfileFrame = 0;
-    std::stringstream fpsCount;
-
-    double lastTime = SDL_GetTicks64(), currentTime = lastTime;
-
-    m_Camera.SetScreenSize(m_Instance.m_Width, m_Instance.m_Height);
+    m_Camera.SetScreenSize(Application::Get().m_Width, Application::Get().m_Height);
     m_Camera.setPosition(glm::vec3(0, 65, 0));
 
     std::chrono::high_resolution_clock::time_point p1, p2;
@@ -196,12 +193,10 @@ Game::Game()
 
     Timer bufferFillTimer("Buffer filling");
 
-    m_va.Bind();
+    m_VertexArray.Bind();
 
-    m_vb(128*64*128*9*36*sizeof(float));
-    m_vb.Bind();
-    
-    int offset = 0, grassOffset = 0;
+    std::shared_ptr<VertexBuffer> vb = std::make_shared<VertexBuffer>(64*64*64*9*36*sizeof(float));
+    vb->Bind();
 
     for (int i=0; i<2; i++)
     {
@@ -310,7 +305,7 @@ Game::Game()
     layout.Push(GL_FLOAT, 3);
     layout.Push(GL_FLOAT, 3);
 
-    m_va.AddBuffer(vb, layout);
+    m_VertexArray.AddBuffer(vb, layout);
 
     bufferFillTimer.Stop();
 
@@ -377,7 +372,7 @@ void Game::Event()
                 debug_fps = !debug_fps;
                 break;
             case SDLK_F11:
-                SDL_SetWindowFullscreen(m_Instance.m_Window, fullscreen ? 0 : SDL_WINDOW_FULLSCREEN_DESKTOP);
+                SDL_SetWindowFullscreen(Application::Get().m_Window, fullscreen ? 0 : SDL_WINDOW_FULLSCREEN_DESKTOP);
                 fullscreen = !fullscreen;
                 break;
             }
@@ -418,46 +413,45 @@ void Game::Event()
 
 void Game::Update()
 {
-    m_Camera.move(m_Instance.m_LastFrameTime);
+    m_Camera.move(Application::Get().m_LastFrameTime);
 
 }
 
-void Game::Render()
+void Game::Draw()
 {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     m_TextureArray.Bind();
 
-    m_va.Bind();
+    m_VertexArray.Bind();
 
-    CubeShader.Bind();
-    CubeShader.SetUniformMat4fv("MVP", camera.getMVP());
-    CubeShader.SetUniform1i("textureSlot", 1);
+    std::shared_ptr<Shader> CubeShader = m_ShaderLibrary.Get("CubeShader");
+    CubeShader->SetUniformMat4fv("MVP", m_Camera.getMVP());
+    CubeShader->SetUniform1i("textureSlot", 1);
 
     GLCall(glDrawArrays(GL_TRIANGLES, 0, grassOffset/(9*sizeof(float))));
 
-    GrassShader.Bind();
-    GrassShader.SetUniformMat4fv("MVP", camera.getMVP());
-    GrassShader.SetUniform1i("textureSlot", 1);
+    std::shared_ptr<Shader> GrassShader = m_ShaderLibrary.Get("GrassShader");
+    GrassShader->SetUniformMat4fv("MVP", m_Camera.getMVP());
+    GrassShader->SetUniform1i("textureSlot", 1);
 
     GLCall(glDrawArrays(GL_TRIANGLES, grassOffset/(9*sizeof(float)), (offset-grassOffset)/(9*sizeof(float))));
 
-    if (debug_fps) {
-            using namespace std::chrono_literals;
-            if (std::chrono::high_resolution_clock::now() > p1+500ms) {
-                fpsProfileFrame = 1;
-                p1 = std::chrono::high_resolution_clock::now();
-                std::chrono::duration<double> duration = std::chrono::duration_cast<std::chrono::duration<double>> (p1-p2);
-                fpsCount.clear();
-                fpsCount.str(std::string());
-                fpsCount << std::fixed << std::setprecision(0) << 1/duration.count();
-                fpsCounter.SetString(fpsCount.str() + " fps");
-            }
-            fpsCounter.RenderText();
-        }
-    p2 = std::chrono::high_resolution_clock::now();
+    if (debug_fps)
+    {
 
-        
-    SDL_GL_SwapWindow(window);
+            // using namespace std::chrono_literals;
+            // if (std::chrono::high_resolution_clock::now() > p1+500ms) {
+            //     p1 = std::chrono::high_resolution_clock::now();
+            //     std::chrono::duration<double> duration = std::chrono::duration_cast<std::chrono::duration<double>> (p1-p2);
+            //     fpsCount.clear();
+            //     fpsCount.str(std::string());
+            //     fpsCount << std::fixed << std::setprecision(0) << 1/duration.count();
+            //     fpsCounter.SetString(fpsCount.str() + " fps");
+            // }
+            // fpsCounter.Draw();
+    }
+    
+    SDL_GL_SwapWindow(Application::Get().m_Window);
 
 }

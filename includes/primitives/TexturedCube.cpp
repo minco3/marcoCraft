@@ -3,7 +3,7 @@
 #include "../opengl/VertexBufferLayout.h"
 
 Cube::Cube()
-    : m_VertexArray(), m_VertexBuffer(36*9*sizeof(float))
+    : m_VertexArray(), m_VertexBuffer(std::make_shared<VertexBuffer>(36*9*sizeof(float)))
 {
     VertexBufferLayout layout;
     layout.Push(GL_FLOAT, 3);
@@ -19,7 +19,7 @@ void Cube::Bind() const
 
 void Cube::BindVB() const
 {
-    m_VertexBuffer.Bind();
+    m_VertexBuffer->Bind();
 }
 
 void Cube::UpdateBuffer(glm::vec3 pos, glm::vec3 size, glm::vec2 texturePos, glm::vec2 textureSize, const Model& m)

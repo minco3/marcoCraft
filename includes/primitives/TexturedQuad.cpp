@@ -3,7 +3,7 @@
 #include "../opengl/VertexBufferLayout.h"
 
 Quad::Quad()
-    : m_VertexArray(), m_IndexBuffer(quadIndices, 3*2), m_VertexBuffer(4*4*sizeof(float))
+    : m_VertexArray(), m_IndexBuffer(quadIndices, 3*2), m_VertexBuffer(std::make_shared<VertexBuffer>(4*4*sizeof(float)))
 {
     VertexBufferLayout layout;
     layout.Push(GL_FLOAT, 2);
@@ -19,7 +19,7 @@ void Quad::Bind()
 
 void Quad::BindVB()
 {
-    m_VertexBuffer.Bind();
+    m_VertexBuffer->Bind();
 }
 
 void Quad::UpdateBuffer(glm::vec2 pos, glm::vec2 size, glm::vec2 texturePos, glm::vec2 textureSize)
