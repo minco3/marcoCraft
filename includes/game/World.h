@@ -1,6 +1,7 @@
 #pragma once
 
 #include <vector>
+#include <map>
 #include <glm/glm.hpp>
 #include "external/SimplexNoise/SimplexNoise.h"
 

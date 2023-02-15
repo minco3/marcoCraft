@@ -7,7 +7,7 @@
 #include "external/stb_image/stb_image.h"
 
 Game::Game()
-    : running(true), m_TextureArray(GL_RGBA), grassOffset(0), offset(0)
+    : running(true), m_TextureArray(GL_RGBA), grassOffset(0), offset(0), fullscreen(false)
 {
     mouseVisible = true;
 
