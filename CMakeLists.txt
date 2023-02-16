@@ -11,6 +11,7 @@ set(EXTERNAL_FOLDER external)
 file(GLOB_RECURSE EXTERNAL_FILES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} CONFIGURE_DEPENDS "${EXTERNAL_FOLDER}/*.cpp")
 
 include_directories(${PROJECT_SOURCE_DIR})
+set(WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
 
 add_executable(minecraft main.cpp ${SOURCE_FILES} ${EXTERNAL_FILES})
 find_package(GTest)
@@ -31,4 +32,5 @@ target_link_libraries(minecraft glew32)
 
 set(CPACK_PROJECT_NAME ${PROJECT_NAME})
 set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})
+
 include(CPack)
