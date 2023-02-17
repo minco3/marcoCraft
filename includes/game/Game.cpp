@@ -10,7 +10,7 @@ Game::Game()
     : running(true), m_TextureArray(GL_RGBA), grassOffset(0), offset(0), fullscreen(false), m_Font("res/arial.ttf", 48),
     m_FpsCounter(m_Font), debug_fps(true), mouseVisible(true), m_Instance(&Application::Get()), allocated(1024), allocator(1024*1000*1000) //1024M
 {
-
+    buffer = allocator.alloc(512*1000*1000);
     m_FpsCounter.setPosition(glm::vec2(100, m_Instance->m_Height-100));
 
     SimplexNoise worldgen;
@@ -172,7 +172,7 @@ Game::Game()
 
     for (int i=0; i<2; i++)
     {
-        unsigned int start = offset;
+        unsigned int localOffset = offset;
         for (const Block& b : visibleBlocks[i])
         {
             glm::vec3 pos = b.position;
@@ -188,8 +188,8 @@ Game::Game()
                     { pos.x+0.0f, pos.y+1.0f, pos.z+0.0f,  0.6f, 0.8f, 0.4f,  0.0f, 0.0f, (float)m.front }, //4
                     { pos.x+0.0f, pos.y+0.0f, pos.z+0.0f,  0.6f, 0.8f, 0.4f,  0.0f, 1.0f, (float)m.front } //0
                 };
-                memcpy(buffer+offset, face, 6*9*sizeof(float));
-                offset+=6*9*sizeof(float);
+                memcpy(buffer+localOffset, face, 6*9*sizeof(float));
+                localOffset+=6*9*sizeof(float);
             }
             if (b.facesVisible[1]) // face 2 (bottom)
             {
@@ -201,8 +201,8 @@ Game::Game()
                     { pos.x+0.0f, pos.y+0.0f, pos.z+1.0f,  1.0f, 1.0f, 1.0f,  0.0f, 0.0f, (float)m.bottom }, //1
                     { pos.x+0.0f, pos.y+0.0f, pos.z+0.0f,  1.0f, 1.0f, 1.0f,  0.0f, 1.0f, (float)m.bottom }, //0
                 };
-                memcpy(buffer+offset, face, 6*9*sizeof(float));
-                offset+=6*9*sizeof(float);
+                memcpy(buffer+localOffset, face, 6*9*sizeof(float));
+                localOffset+=6*9*sizeof(float);
             }
             if (b.facesVisible[2]) // face 3
             {
@@ -214,8 +214,8 @@ Game::Game()
                     { pos.x+1.0f, pos.y+1.0f, pos.z+0.0f,  0.6f, 0.8f, 0.4f,  1.0f, 0.0f, (float)m.left }, //3
                     { pos.x+1.0f, pos.y+0.0f, pos.z+0.0f,  0.6f, 0.8f, 0.4f,  1.0f, 1.0f, (float)m.left }, //6
                 };
-                memcpy(buffer+offset, face, 6*9*sizeof(float));
-                offset+=6*9*sizeof(float);
+                memcpy(buffer+localOffset, face, 6*9*sizeof(float));
+                localOffset+=6*9*sizeof(float);
 
             }
             if (b.facesVisible[3]) // face 4
@@ -228,8 +228,8 @@ Game::Game()
                     { pos.x+1.0f, pos.y+1.0f, pos.z+1.0f,  0.6f, 0.8f, 0.4f,  1.0f, 0.0f, (float)m.right }, //7
                     { pos.x+1.0f, pos.y+0.0f, pos.z+1.0f,  0.6f, 0.8f, 0.4f,  1.0f, 1.0f, (float)m.right }, //5
                 };
-                memcpy(buffer+offset, face, 6*9*sizeof(float));
-                offset+=6*9*sizeof(float);
+                memcpy(buffer+localOffset, face, 6*9*sizeof(float));
+                localOffset+=6*9*sizeof(float);
 
             }
             if (b.facesVisible[4]) // face 5
@@ -242,8 +242,8 @@ Game::Game()
                     { pos.x+0.0f, pos.y+1.0f, pos.z+0.0f,  0.6f, 0.8f, 0.4f,  0.0f, 1.0f, (float)m.top }, //4
                     { pos.x+0.0f, pos.y+1.0f, pos.z+1.0f,  0.6f, 0.8f, 0.4f,  0.0f, 0.0f, (float)m.top }, //2
                 };
-                memcpy(buffer+offset, face, 6*9*sizeof(float));
-                offset+=6*9*sizeof(float);
+                memcpy(buffer+localOffset, face, 6*9*sizeof(float));
+                localOffset+=6*9*sizeof(float);
 
             }
             if (b.facesVisible[5]) // face 6
@@ -256,17 +256,19 @@ Game::Game()
                     { pos.x+0.0f, pos.y+0.0f, pos.z+1.0f,  0.6f, 0.8f, 0.4f,  0.0f, 1.0f, (float)m.back }, //1
                     { pos.x+1.0f, pos.y+0.0f, pos.z+1.0f,  0.6f, 0.8f, 0.4f,  1.0f, 1.0f, (float)m.back }, //5
                 };
-                memcpy(buffer+offset, face, 6*9*sizeof(float));
-                offset+=6*9*sizeof(float);
+                memcpy(buffer+localOffset, face, 6*9*sizeof(float));
+                localOffset+=6*9*sizeof(float);
             }            
         }
-        GLCall(glBufferSubData(GL_ARRAY_BUFFER, start, offset-start, buffer));
+        offset = localOffset;
 
         if (i == 0)
         {
             grassOffset = offset;
         }
     }
+    GLCall(glBufferSubData(GL_ARRAY_BUFFER, 0, offset, buffer));
+
 
     VertexBufferLayout layout;
     layout.Push(GL_FLOAT, 3);

@@ -4,13 +4,19 @@
 Alloc::Alloc(unsigned long long size)
     : root(new Entry(nullptr, nullptr, size)), spaceFree(size), spaceUsed(0)
 {
-    root->data = malloc(size);
+    root->data = new char[size];
 }
 
 Alloc::~Alloc()
 {
-    free(root->data);
-    delete root;
+    delete[] root->data;
+    Entry* last;
+    while (root)
+    {
+        last = root;
+        root = root->next;
+        delete last;
+    }
 }
 
 void* Alloc::alloc(unsigned long long size)
