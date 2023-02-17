@@ -7,9 +7,11 @@
 #include "external/stb_image/stb_image.h"
 
 Game::Game()
-    : running(true), m_TextureArray(GL_RGBA), grassOffset(0), offset(0), fullscreen(false)
+    : running(true), m_TextureArray(GL_RGBA), grassOffset(0), offset(0), fullscreen(false), m_Font("res/arial.ttf", 48),
+    m_FpsCounter(m_Font), debug_fps(true), mouseVisible(true), m_Instance(&Application::Get()), allocated(1024), allocator(1024*1000*1000) //1024M
 {
-    mouseVisible = true;
+
+    m_FpsCounter.setPosition(glm::vec2(100, m_Instance->m_Height-100));
 
     SimplexNoise worldgen;
 
@@ -132,8 +134,6 @@ Game::Game()
         m_ShaderLibrary.Load(entry.path().string());
     }
     
-    Font font("res/arial.ttf", 48);
-
     std::filesystem::path texturedir = std::filesystem::current_path() += "/res/texture";
     std::filesystem::directory_iterator texturedir_iter (texturedir);
 
@@ -155,10 +155,6 @@ Game::Game()
     // GLCall(glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAX_LEVEL, 2));
     // GLCall(glGenerateMipmap(GL_TEXTURE_2D_ARRAY));
 
-    Text fpsCounter(font);
-    fpsCounter.setPosition(glm::vec2(100, Application::Get().m_Height-100));
-    fpsCounter.SetScreenSize(Application::Get().m_Width, Application::Get().m_Height);
-
     glClearColor(0.0f, 0.0f, 0.4f, 0.0f);
 
     m_Camera.SetScreenSize(Application::Get().m_Width, Application::Get().m_Height);
@@ -176,17 +172,12 @@ Game::Game()
 
     for (int i=0; i<2; i++)
     {
-
+        unsigned int start = offset;
         for (const Block& b : visibleBlocks[i])
         {
-
             glm::vec3 pos = b.position;
             Model m = models.at(b.model);        
-
-            float vertices[36][9];
             
-            int facesVisible = 0;
-
             if (b.facesVisible[0]) // face 1
             {
                 float face [6][9] = {
@@ -197,8 +188,8 @@ Game::Game()
                     { pos.x+0.0f, pos.y+1.0f, pos.z+0.0f,  0.6f, 0.8f, 0.4f,  0.0f, 0.0f, (float)m.front }, //4
                     { pos.x+0.0f, pos.y+0.0f, pos.z+0.0f,  0.6f, 0.8f, 0.4f,  0.0f, 1.0f, (float)m.front } //0
                 };
-                memcpy(vertices+facesVisible * 6, face, 6*9*sizeof(float));
-                facesVisible++;
+                memcpy(buffer+offset, face, 6*9*sizeof(float));
+                offset+=6*9*sizeof(float);
             }
             if (b.facesVisible[1]) // face 2 (bottom)
             {
@@ -210,8 +201,8 @@ Game::Game()
                     { pos.x+0.0f, pos.y+0.0f, pos.z+1.0f,  1.0f, 1.0f, 1.0f,  0.0f, 0.0f, (float)m.bottom }, //1
                     { pos.x+0.0f, pos.y+0.0f, pos.z+0.0f,  1.0f, 1.0f, 1.0f,  0.0f, 1.0f, (float)m.bottom }, //0
                 };
-                memcpy(vertices+facesVisible * 6, face, 6*9*sizeof(float));
-                facesVisible++;
+                memcpy(buffer+offset, face, 6*9*sizeof(float));
+                offset+=6*9*sizeof(float);
             }
             if (b.facesVisible[2]) // face 3
             {
@@ -223,8 +214,9 @@ Game::Game()
                     { pos.x+1.0f, pos.y+1.0f, pos.z+0.0f,  0.6f, 0.8f, 0.4f,  1.0f, 0.0f, (float)m.left }, //3
                     { pos.x+1.0f, pos.y+0.0f, pos.z+0.0f,  0.6f, 0.8f, 0.4f,  1.0f, 1.0f, (float)m.left }, //6
                 };
-                memcpy(vertices+facesVisible * 6, face, 6*9*sizeof(float));
-                facesVisible++;
+                memcpy(buffer+offset, face, 6*9*sizeof(float));
+                offset+=6*9*sizeof(float);
+
             }
             if (b.facesVisible[3]) // face 4
             {
@@ -236,8 +228,9 @@ Game::Game()
                     { pos.x+1.0f, pos.y+1.0f, pos.z+1.0f,  0.6f, 0.8f, 0.4f,  1.0f, 0.0f, (float)m.right }, //7
                     { pos.x+1.0f, pos.y+0.0f, pos.z+1.0f,  0.6f, 0.8f, 0.4f,  1.0f, 1.0f, (float)m.right }, //5
                 };
-                memcpy(vertices+facesVisible * 6, face, 6*9*sizeof(float));
-                facesVisible++;
+                memcpy(buffer+offset, face, 6*9*sizeof(float));
+                offset+=6*9*sizeof(float);
+
             }
             if (b.facesVisible[4]) // face 5
             {
@@ -249,8 +242,9 @@ Game::Game()
                     { pos.x+0.0f, pos.y+1.0f, pos.z+0.0f,  0.6f, 0.8f, 0.4f,  0.0f, 1.0f, (float)m.top }, //4
                     { pos.x+0.0f, pos.y+1.0f, pos.z+1.0f,  0.6f, 0.8f, 0.4f,  0.0f, 0.0f, (float)m.top }, //2
                 };
-                memcpy(vertices+facesVisible * 6, face, 6*9*sizeof(float));
-                facesVisible++;
+                memcpy(buffer+offset, face, 6*9*sizeof(float));
+                offset+=6*9*sizeof(float);
+
             }
             if (b.facesVisible[5]) // face 6
             {
@@ -262,14 +256,12 @@ Game::Game()
                     { pos.x+0.0f, pos.y+0.0f, pos.z+1.0f,  0.6f, 0.8f, 0.4f,  0.0f, 1.0f, (float)m.back }, //1
                     { pos.x+1.0f, pos.y+0.0f, pos.z+1.0f,  0.6f, 0.8f, 0.4f,  1.0f, 1.0f, (float)m.back }, //5
                 };
-                memcpy(vertices+facesVisible * 6, face, 6*9*sizeof(float));
-                facesVisible++;
-            }
-
-            GLCall(glBufferSubData(GL_ARRAY_BUFFER, offset, facesVisible * 6 * 9 * sizeof(float), vertices));
-            offset += facesVisible * 6 * 9 * sizeof(float);
-            
+                memcpy(buffer+offset, face, 6*9*sizeof(float));
+                offset+=6*9*sizeof(float);
+            }            
         }
+        GLCall(glBufferSubData(GL_ARRAY_BUFFER, start, offset-start, buffer));
+
         if (i == 0)
         {
             grassOffset = offset;
@@ -417,17 +409,17 @@ void Game::Draw()
 
     if (debug_fps)
     {
-
-            // using namespace std::chrono_literals;
-            // if (std::chrono::high_resolution_clock::now() > p1+500ms) {
-            //     p1 = std::chrono::high_resolution_clock::now();
-            //     std::chrono::duration<double> duration = std::chrono::duration_cast<std::chrono::duration<double>> (p1-p2);
-            //     fpsCount.clear();
-            //     fpsCount.str(std::string());
-            //     fpsCount << std::fixed << std::setprecision(0) << 1/duration.count();
-            //     fpsCounter.SetString(fpsCount.str() + " fps");
-            // }
-            // fpsCounter.Draw();
+            using namespace std::chrono_literals;
+            if (std::chrono::high_resolution_clock::now() > p1+500ms) {
+                std::stringstream fpsCount;
+                p1 = std::chrono::high_resolution_clock::now();
+                std::chrono::duration<double> duration = std::chrono::duration_cast<std::chrono::duration<double>> (p1-p2);
+                fpsCount.clear();
+                fpsCount.str(std::string());
+                fpsCount << std::fixed << std::setprecision(0) << 1/duration.count();
+                m_FpsCounter.SetString(fpsCount.str() + " fps");
+            }
+            m_FpsCounter.RenderText();
     }
     
     SDL_GL_SwapWindow(Application::Get().m_Window);

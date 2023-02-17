@@ -6,8 +6,13 @@ class TextureArray;
 class VertexArray;
 class VertexBuffer;
 class FrameCounter;
+class Font;
+class Text;
+
+#include <chrono>
 
 #include "World.h"
+#include "includes/utils/Alloc.h"
 
 class Game {
 public:
@@ -22,7 +27,9 @@ bool isRunning() {return running;}
 
 private:
     bool running;
-    // Application& m_Instance;
+    
+    Application* m_Instance;
+    
     Camera m_Camera;
 
     VertexArray m_VertexArray;
@@ -34,9 +41,17 @@ private:
     int grassOffset;
     int offset;
 
-    FrameCounter fpsCounter;
+    std::chrono::high_resolution_clock::time_point p1, p2;
+
+    Font m_Font;
+    Text m_FpsCounter;
+
 
     bool mouseVisible;
     bool fullscreen;
     bool debug_fps;
+
+    int allocated;
+    Alloc allocator;
+    void* buffer;
 };
