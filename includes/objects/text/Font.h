@@ -19,11 +19,14 @@ struct Character
 
 class Font
 {
-    friend class Text;
 public:
     Font(const std::string& path, int size);
 
     void Bind();
+
+    glm::ivec2 getSize() { return m_TextureAtlas.getSize(); }
+
+    const Character& getCharacter(char c) const { return m_Characters.count(c) ? m_Characters.at(c) : m_Characters.at('0'); }
 
 private:
     std::map<char, Character> m_Characters;

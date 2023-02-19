@@ -13,7 +13,7 @@
 class Text
 {
 public:
-    Text(const Font& font, std::string string = std::string());
+    Text(const std::shared_ptr<Font>& font, std::string string = std::string());
     
     void SetString(std::string string);
     std::string GetString();
@@ -26,7 +26,7 @@ public:
 
 private:
     std::string m_String;
-    Font m_Font;
+    std::shared_ptr<Font> m_Font;
     Shader m_Shader;
     glm::mat4 m_Projection;
     glm::vec2 m_Position;

@@ -3,8 +3,8 @@
 Font::Font(const std::string& path, int size)
 {
     m_TextureAtlas.SetInternalFormat(GL_RED);
+    GLCall(glPixelStorei(GL_UNPACK_ALIGNMENT, 1));
     LoadFont(path, size);
-
 }
 
 void Font::Bind()

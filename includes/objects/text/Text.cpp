@@ -1,6 +1,6 @@
 #include "Text.h"
 
-Text::Text(const Font& font, std::string String)
+Text::Text(const std::shared_ptr<Font>& font, std::string String)
     :m_Font(font), m_Color(1.0f, 1.0f, 1.0f),
     m_Scale(1), m_Shader("res/shaders/TextShader.glsl")
 {}
@@ -30,20 +30,21 @@ void Text::SetScreenSize(int width, int height)
 void Text::RenderText()
 {
     glDisable(GL_DEPTH_TEST);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glActiveTexture(GL_TEXTURE1);
     m_Quad.Bind();
     m_Quad.BindVB();
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     m_Shader.Bind();
     m_Shader.SetUniform3f("textColor", m_Color);
     m_Shader.SetUniformMat4fv("projection", m_Projection);
-    m_Font.m_TextureAtlas.Bind();
-    m_Shader.SetUniform1i("text", 0);
+    m_Font->Bind();
+    m_Shader.SetUniform1i("text", 1);
 
     float x = m_Position.x;
-    glm::vec2 atlasSize = m_Font.m_TextureAtlas.getSize();
+    const glm::vec2& atlasSize = m_Font->getSize();
 
     for (char c : m_String) {
-        Character ch = m_Font.m_Characters[c];
+        const Character& ch = m_Font->getCharacter(c);
 
         float xpos = x + ch.Bearing.x;
         float ypos = m_Position.y - (ch.Size.y - ch.Bearing.y);

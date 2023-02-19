@@ -8,13 +8,16 @@
 
 Game::Game()
     : running(true), m_TextureArray(GL_RGBA), grassOffset(0), offset(0), fullscreen(false), m_Font("res/arial.ttf", 48),
-    m_FpsCounter(m_Font), debug_fps(true), mouseVisible(true), m_Instance(&Application::Get()), allocated(1024), allocator(1024*1000*1000) /*1024M*/ ,
+    m_FpsCounter(std::make_shared<Font>(m_Font)), debug_fps(true), mouseVisible(true), m_Instance(&Application::Get()), allocated(1024), allocator(1024*1000*1000) /*1024M*/ ,
     m_FrameBuffer(glm::ivec2(m_Instance->m_Width, m_Instance->m_Height))
 {
+    m_FrameBuffer.Unbind();
     buffer = allocator.alloc(512*1000*1000);
-    m_FpsCounter.setPosition(glm::vec2(100, m_Instance->m_Height-100));
 
-    m_ScreenQuad.UpdateBuffer(glm::vec2(0,0), glm::vec2(m_Instance->m_Width, m_Instance->m_Height), glm::vec2(0,0), glm::vec2(1,1));
+    m_FpsCounter.setPosition(glm::vec2(100, m_Instance->m_Height-100));
+    m_FpsCounter.SetScreenSize(m_Instance->m_Width, m_Instance->m_Height);
+
+    m_ScreenQuad.UpdateBuffer(glm::vec2(-1,-1), glm::vec2(2, 2), glm::vec2(0,1), glm::vec2(1,-1));
 
     SimplexNoise worldgen;
 
@@ -125,7 +128,6 @@ Game::Game()
     glEnable(GL_CULL_FACE);
     glDepthFunc(GL_LESS);
     glEnable(GL_BLEND);
-    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 
     std::filesystem::path rootdir = std::filesystem::current_path();
     
@@ -150,13 +152,6 @@ Game::Game()
         unsigned char* data = stbi_load(entry.path().string().c_str(), &x, &y, &bits, 4);
         m_TextureArray.SetData(glm::vec2(0, 0), textureID.at(entry.path().stem().string()), glm::vec2(16,16), data);
     }
-
-    GLCall(glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE));
-    GLCall(glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE));
-    GLCall(glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_NEAREST));
-    GLCall(glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_NEAREST));
-    // GLCall(glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAX_LEVEL, 2));
-    // GLCall(glGenerateMipmap(GL_TEXTURE_2D_ARRAY));
 
     glClearColor(0.0f, 0.0f, 0.4f, 0.0f);
 
@@ -416,6 +411,20 @@ void Game::Draw()
 
     GLCall(glDrawArrays(GL_TRIANGLES, grassOffset/(9*sizeof(float)), (offset-grassOffset)/(9*sizeof(float))));
 
+    m_FrameBuffer.Unbind();
+
+    GLCall(glDisable(GL_DEPTH_TEST));
+
+    m_ScreenQuad.Bind();
+    
+    GLCall(glActiveTexture(GL_TEXTURE0));
+    m_FrameBuffer.Texture.Bind();
+    std::shared_ptr<Shader> ScreenShader = m_ShaderLibrary.Get("ScreenShader");
+    ScreenShader->Bind();
+    ScreenShader->SetUniform1i("textureSlot", 0);
+
+    GLCall(glDrawElements(GL_TRIANGLES, m_ScreenQuad.IndexCount(), GL_UNSIGNED_INT, nullptr));
+
     if (debug_fps)
     {
             using namespace std::chrono_literals;
@@ -431,20 +440,6 @@ void Game::Draw()
             m_FpsCounter.RenderText();
     }
 
-    m_FrameBuffer.Unbind();
-
-    GLCall(glDisable(GL_DEPTH_TEST));
-
-    std::shared_ptr<Shader> ScreenShader = m_ShaderLibrary.Get("ScreenShader");
-    ScreenShader->Bind();
-    ScreenShader->SetUniform1i("textureSlot", 0);
-    GLCall(glActiveTexture(GL_TEXTURE0));
-    m_FrameBuffer.Texture.Bind();
-
-    m_ScreenQuad.Bind();
-    m_ScreenQuad.BindVB();
-    GLCall(glDrawElements(GL_TRIANGLES, m_ScreenQuad.IndexCount(), GL_UNSIGNED_INT, nullptr));
-    
     SDL_GL_SwapWindow(Application::Get().m_Window);
 
 }
