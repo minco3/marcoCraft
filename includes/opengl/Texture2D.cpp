@@ -6,8 +6,15 @@ Texture2D::Texture2D()
     Bind();
     GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE));
     GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE));
-    GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
-    GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
+    GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST));
+    GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST));
+}
+
+Texture2D::Texture2D(const glm::ivec2 size, GLuint format)
+    : Texture2D()// delegating constructor
+{
+    m_InternalFormat = format;
+    Resize(size);
 }
 
 Texture2D::~Texture2D()
@@ -17,7 +24,6 @@ Texture2D::~Texture2D()
 
 void Texture2D::Bind() const
 {
-    glActiveTexture(GL_TEXTURE0);
     GLCall(glBindTexture(GL_TEXTURE_2D, m_RendererID));
 }
 
@@ -31,7 +37,7 @@ void Texture2D::SetInternalFormat(GLuint format)
     m_InternalFormat = format;
 }
 
-void Texture2D::Resize(glm::vec2 size)
+void Texture2D::Resize(glm::ivec2 size)
 {
     m_Size = size;
     Bind();

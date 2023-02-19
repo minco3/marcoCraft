@@ -30,7 +30,7 @@ void TextureArray::SetInternalFormat(GLuint format)
     m_InternalFormat = format;
 }
 
-void TextureArray::Resize(glm::vec3 size)
+void TextureArray::Resize(glm::ivec3 size)
 {
     m_Size = size;
     Bind();

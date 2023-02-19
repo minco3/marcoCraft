@@ -13,7 +13,7 @@ public:
 
     void SetInternalFormat(GLuint format);
 
-    void Resize(glm::vec3 size);
+    void Resize(glm::ivec3 size);
     void SetData(glm::vec2 pos, unsigned int layer, glm::vec2 size, unsigned char* data);
     glm::vec3 getSize() {return m_Size;}
 

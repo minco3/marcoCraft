@@ -27,6 +27,7 @@
 #include "includes/opengl/Shader.h"
 #include "includes/opengl/Texture2D.h"
 #include "includes/opengl/TextureArray.h"
+#include "includes/opengl/FrameBuffer.h"
 
 #include "includes/objects/camera/Camera.h"
 #include "includes/objects/text/Text.h"

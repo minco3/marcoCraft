@@ -46,7 +46,7 @@ bool Font::LoadFont(std::string path , int size)
         
     }
 
-    m_TextureAtlas.Resize(glm::vec2(w, h));
+    m_TextureAtlas.Resize(glm::ivec2(w, h));
 
     unsigned int x = 0;
 

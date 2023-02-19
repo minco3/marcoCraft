@@ -5,7 +5,8 @@ class Camera;
 class TextureArray;
 class VertexArray;
 class VertexBuffer;
-class FrameCounter;
+class FrameBuffer;
+class Quad;
 class Font;
 class Text;
 
@@ -46,6 +47,8 @@ private:
     Font m_Font;
     Text m_FpsCounter;
 
+    FrameBuffer m_FrameBuffer;
+    Quad m_ScreenQuad;
 
     bool mouseVisible;
     bool fullscreen;

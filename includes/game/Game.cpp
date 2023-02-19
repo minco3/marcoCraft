@@ -8,10 +8,13 @@
 
 Game::Game()
     : running(true), m_TextureArray(GL_RGBA), grassOffset(0), offset(0), fullscreen(false), m_Font("res/arial.ttf", 48),
-    m_FpsCounter(m_Font), debug_fps(true), mouseVisible(true), m_Instance(&Application::Get()), allocated(1024), allocator(1024*1000*1000) //1024M
+    m_FpsCounter(m_Font), debug_fps(true), mouseVisible(true), m_Instance(&Application::Get()), allocated(1024), allocator(1024*1000*1000) /*1024M*/ ,
+    m_FrameBuffer(glm::ivec2(m_Instance->m_Width, m_Instance->m_Height))
 {
     buffer = allocator.alloc(512*1000*1000);
     m_FpsCounter.setPosition(glm::vec2(100, m_Instance->m_Height-100));
+
+    m_ScreenQuad.UpdateBuffer(glm::vec2(0,0), glm::vec2(m_Instance->m_Width, m_Instance->m_Height), glm::vec2(0,0), glm::vec2(1,1));
 
     SimplexNoise worldgen;
 
@@ -139,7 +142,7 @@ Game::Game()
 
     int textureCount = std::distance(texturedir_iter, {}); // count the number of textures to load
 
-    m_TextureArray.Resize(glm::vec3(16,16,textureCount));
+    m_TextureArray.Resize(glm::ivec3(16,16,textureCount));
     for (auto const& entry : std::filesystem::directory_iterator(texturedir))
     {
         int x, y, bits;
@@ -389,6 +392,10 @@ void Game::Update()
 
 void Game::Draw()
 {
+    GLCall(glEnable(GL_DEPTH_TEST));
+
+    m_FrameBuffer.Bind();
+
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     m_TextureArray.Bind();
@@ -423,6 +430,20 @@ void Game::Draw()
             }
             m_FpsCounter.RenderText();
     }
+
+    m_FrameBuffer.Unbind();
+
+    GLCall(glDisable(GL_DEPTH_TEST));
+
+    std::shared_ptr<Shader> ScreenShader = m_ShaderLibrary.Get("ScreenShader");
+    ScreenShader->Bind();
+    ScreenShader->SetUniform1i("textureSlot", 0);
+    GLCall(glActiveTexture(GL_TEXTURE0));
+    m_FrameBuffer.Texture.Bind();
+
+    m_ScreenQuad.Bind();
+    m_ScreenQuad.BindVB();
+    GLCall(glDrawElements(GL_TRIANGLES, m_ScreenQuad.IndexCount(), GL_UNSIGNED_INT, nullptr));
     
     SDL_GL_SwapWindow(Application::Get().m_Window);
 
