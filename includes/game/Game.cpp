@@ -419,27 +419,30 @@ void Game::Draw()
     
     GLCall(glActiveTexture(GL_TEXTURE0));
     m_FrameBuffer.Texture.Bind();
+    GLCall(glActiveTexture(GL_TEXTURE2));
+    m_FrameBuffer.DepthTexture.Bind();
     std::shared_ptr<Shader> ScreenShader = m_ShaderLibrary.Get("ScreenShader");
     ScreenShader->Bind();
     ScreenShader->SetUniform1i("textureSlot", 0);
+    ScreenShader->SetUniform1i("depthTextureSlot", 2);
 
     GLCall(glDrawElements(GL_TRIANGLES, m_ScreenQuad.IndexCount(), GL_UNSIGNED_INT, nullptr));
 
     if (debug_fps)
     {
-            using namespace std::chrono_literals;
-            if (std::chrono::high_resolution_clock::now() > p1+500ms) {
-                std::stringstream fpsCount;
-                p1 = std::chrono::high_resolution_clock::now();
-                std::chrono::duration<double> duration = std::chrono::duration_cast<std::chrono::duration<double>> (p1-p2);
-                fpsCount.clear();
-                fpsCount.str(std::string());
-                fpsCount << std::fixed << std::setprecision(0) << 1/duration.count();
-                m_FpsCounter.SetString(fpsCount.str() + " fps");
-            }
-            m_FpsCounter.RenderText();
+        using namespace std::chrono_literals;
+        if (std::chrono::high_resolution_clock::now() > p1+500ms) {
+            std::stringstream fpsCount;
+            p1 = std::chrono::high_resolution_clock::now();
+            std::chrono::duration<double> duration = std::chrono::duration_cast<std::chrono::duration<double>> (p1-p2);
+            fpsCount.clear();
+            fpsCount.str(std::string());
+            fpsCount << std::fixed << std::setprecision(0) << 1/duration.count();
+            m_FpsCounter.SetString(fpsCount.str() + " fps");
+        }
+        m_FpsCounter.RenderText();
     }
 
+    p2 = std::chrono::high_resolution_clock::now();
     SDL_GL_SwapWindow(Application::Get().m_Window);
-
 }

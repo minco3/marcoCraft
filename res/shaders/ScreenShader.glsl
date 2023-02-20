@@ -19,8 +19,20 @@ in vec2 textureCoords;
 out vec4 color;
 
 uniform sampler2D textureSlot;
+uniform sampler2D depthTextureSlot;
+
+float near = 0.1f;
+float far = 100.0f;
+
+float linearizeDepth(float depth)
+{
+    return (2.0 * near * far) / (far + near - (depth * 2.0 - 1.0) * (far - near));
+}
 
 void main()
 {
-    color = texture(textureSlot, textureCoords);
+    vec4 depthValue = texture(depthTextureSlot, textureCoords);
+    float depth = depthValue.r;
+    float linearDepth = (linearizeDepth(depth) - near) / (far - near);
+    color = texture(textureSlot, textureCoords) * vec4(1.0-vec3(linearDepth), 1.0);
 }
