@@ -9,7 +9,7 @@
 Game::Game()
     : running(true), m_TextureArray(GL_RGBA), grassOffset(0), offset(0), fullscreen(false), m_Font("res/arial.ttf", 48),
     m_FpsCounter(std::make_shared<Font>(m_Font)), debug_fps(true), mouseVisible(true), m_Instance(&Application::Get()), allocated(1024), allocator(1024*1000*1000) /*1024M*/ ,
-    m_FrameBuffer(glm::ivec2(m_Instance->m_Width, m_Instance->m_Height))
+    m_FrameBuffer(glm::ivec2(m_Instance->m_Width, m_Instance->m_Height)), m_ssaoFrameBuffer(glm::ivec2(m_Instance->m_Width, m_Instance->m_Height))
 {
     m_FrameBuffer.Unbind();
     buffer = allocator.alloc(512*1000*1000);
@@ -427,6 +427,20 @@ void Game::Draw()
     ScreenShader->SetUniform1i("depthTextureSlot", 2);
 
     GLCall(glDrawElements(GL_TRIANGLES, m_ScreenQuad.IndexCount(), GL_UNSIGNED_INT, nullptr));
+
+    // GLCall(glBindFramebuffer(GL_FRAMEBUFFER, m_ssaoFrameBuffer));
+    // glClear(GL_COLOR_BUFFER_BIT);
+
+    // GLCall(glActiveTexture(GL_TEXTURE0));
+    // m_ssaoFrameBuffer.Texture.Bind();
+    // GLCall(glActiveTexture(GL_TEXTURE2));
+    // m_ssaoFrameBuffer.DepthTexture.Bind();
+    // std::shared_ptr<Shader> SSAOShader = m_ShaderLibrary.Get("SSAOShader");
+    // SSAOShader->Bind();
+    // SSAOShader->SetUniform1i("textureSlot", 0);
+    // SSAOShader->SetUniform1i("depthTextureSlot", 2);
+
+    // GLCall(glDrawElements(GL_TRIANGLES, m_ScreenQuad.IndexCount(), GL_UNSIGNED_INT, nullptr));
 
     if (debug_fps)
     {

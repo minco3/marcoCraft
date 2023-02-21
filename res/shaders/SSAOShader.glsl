@@ -36,7 +36,6 @@ void main()
     vec4 depthValue = texture(depthTextureSlot, textureCoords);
     float depth = depthValue.r;
     float linearDepth = (linearizeDepth(depth) - near) / (far - near);
-    // color = texture(textureSlot, textureCoords);
-    float smoothDepth = smoothstep(0.0, 1.0, linearDepth);
-    color = mix(texture(textureSlot, textureCoords), fogColor, smoothDepth);
+    // float smoothDepth = smoothstep(0.0, 1.0, linearDepth);
+    color = texture(textureSlot, textureCoords);
 }

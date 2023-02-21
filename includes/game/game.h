@@ -48,6 +48,7 @@ private:
     Text m_FpsCounter;
 
     FrameBuffer m_FrameBuffer;
+    FrameBuffer m_ssaoFrameBuffer;
     Quad m_ScreenQuad;
 
     bool mouseVisible;
