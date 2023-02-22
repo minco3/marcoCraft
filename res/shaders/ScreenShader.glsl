@@ -41,28 +41,28 @@ void main()
     //     -1,  9, -1,
     //     -1, -1, -1
     // );
-    float kernel[9] = float[](
-        1.0/16, 2.0/16, 1.0/16,
-        2.0/16, 4.0/16, 2.0/16,
-        1.0/16, 2.0/16, 1.0/16
-    );
+    // float kernel[9] = float[](
+    //     1.0/16, 2.0/16, 1.0/16,
+    //     2.0/16, 4.0/16, 2.0/16,
+    //     1.0/16, 2.0/16, 1.0/16
+    // );
+    // 
+    // vec4 col = vec4(0.0);
+    // col += kernel[0] * texture(textureSlot, textureCoords + vec2(-offset, offset )); // top left
+    // col += kernel[1] * texture(textureSlot, textureCoords + vec2(0.0f,    offset )); // top center
+    // col += kernel[2] * texture(textureSlot, textureCoords + vec2(offset,  offset )); // top right
+    // col += kernel[3] * texture(textureSlot, textureCoords + vec2(-offset, 0.0f   )); // left
+    // col += kernel[4] * texture(textureSlot, textureCoords + vec2(0.0f,    0.0f   )); // center
+    // col += kernel[5] * texture(textureSlot, textureCoords + vec2(offset,  0.0f   )); // right
+    // col += kernel[6] * texture(textureSlot, textureCoords + vec2(-offset, -offset)); // bottom left
+    // col += kernel[7] * texture(textureSlot, textureCoords + vec2(0.0f,    -offset)); // bottom center
+    // col += kernel[8] * texture(textureSlot, textureCoords + vec2(offset,  -offset)); // bottom right
+    // color = col;
 
+    vec4 depthValue = texture(depthTextureSlot, textureCoords);
+    float depth = depthValue.r;
+    float linearDepth = (linearizeDepth(depth) - near) / (far - near);
+    float smoothDepth = smoothstep(0.0, 1.0, linearDepth);
+    color = mix(texture(textureSlot, textureCoords), fogColor, smoothDepth);
 
-    // vec4 depthValue = texture(depthTextureSlot, textureCoords);
-    // float depth = depthValue.r;
-    // float linearDepth = (linearizeDepth(depth) - near) / (far - near);
-    // float smoothDepth = smoothstep(0.0, 1.0, linearDepth);
-    // color = mix(texture(textureSlot, textureCoords), fogColor, smoothDepth);
-    vec4 col = vec4(0.0);
-    col += kernel[0] * texture(textureSlot, textureCoords + vec2(-offset, offset )); // top left
-    col += kernel[1] * texture(textureSlot, textureCoords + vec2(0.0f,    offset )); // top center
-    col += kernel[2] * texture(textureSlot, textureCoords + vec2(offset,  offset )); // top right
-    col += kernel[3] * texture(textureSlot, textureCoords + vec2(-offset, 0.0f   )); // left
-    col += kernel[4] * texture(textureSlot, textureCoords + vec2(0.0f,    0.0f   )); // center
-    col += kernel[5] * texture(textureSlot, textureCoords + vec2(offset,  0.0f   )); // right
-    col += kernel[6] * texture(textureSlot, textureCoords + vec2(-offset, -offset)); // bottom left
-    col += kernel[7] * texture(textureSlot, textureCoords + vec2(0.0f,    -offset)); // bottom center
-    col += kernel[8] * texture(textureSlot, textureCoords + vec2(offset,  -offset)); // bottom right
-
-    color = col;
 }

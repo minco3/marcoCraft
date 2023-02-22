@@ -404,10 +404,14 @@ void Game::Draw()
 
     GLCall(glDrawArrays(GL_TRIANGLES, 0, grassOffset/(9*sizeof(float))));
 
-    std::shared_ptr<Shader> GrassShader = m_ShaderLibrary.Get("GrassShader");
-    GrassShader->Bind();
-    GrassShader->SetUniformMat4fv("MVP", m_Camera.getMVP());
-    GrassShader->SetUniform1i("textureSlot", 1);
+    // std::shared_ptr<Shader> GrassShader = m_ShaderLibrary.Get("GrassShader");
+    // GrassShader->Bind();
+    // GrassShader->SetUniformMat4fv("MVP", m_Camera.getMVP());
+    // GrassShader->SetUniform1i("textureSlot", 1);
+
+    std::shared_ptr<Shader> NormalShader = m_ShaderLibrary.Get("NormalShader");
+    NormalShader->Bind();
+    NormalShader->SetUniformMat4fv("MVP", m_Camera.getMVP());
 
     GLCall(glDrawArrays(GL_TRIANGLES, grassOffset/(9*sizeof(float)), (offset-grassOffset)/(9*sizeof(float))));
 

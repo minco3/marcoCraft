@@ -2,6 +2,8 @@
 
 #include <filesystem>
 
+#include <map>
+
 Shader::Shader(const std::string& filepath)
     : m_FilePath(filepath), m_RendererID(0)
 {
@@ -59,9 +61,6 @@ GLuint Shader::GetUniformLocation(const std::string& name)
 
 GLuint Shader::CompileShader()
 {
-    GLCall(GLuint VertexShaderID = glCreateShader(GL_VERTEX_SHADER));
-    GLCall(GLuint FragmentShaderID = glCreateShader(GL_FRAGMENT_SHADER));
-
     std::ifstream stream(m_FilePath);
 
     if (!stream.is_open())
@@ -70,12 +69,31 @@ GLuint Shader::CompileShader()
         return 0;
     }
     
-    enum ShaderType {
-        NONE = -1, VERTEX = 0, FRAGMENT = 1
+    enum ShaderType
+    {
+        NONE = -1, VERTEX = 0, GEOMETRY = 1, FRAGMENT = 2
     };
 
+    struct ShaderSpec
+    {
+        std::string shaderName;
+        GLenum ShaderEnum;
+    };
+
+    struct ShaderSource
+    {
+        GLenum ShaderID;
+        std::stringstream ShaderSrc;
+    };
+
+    static const std::map<ShaderType, ShaderSpec> ShaderTypes = {
+        {VERTEX, {"Vertex", GL_VERTEX_SHADER}}, {GEOMETRY, {"Geometry", GL_GEOMETRY_SHADER}}, {FRAGMENT, {"Fragment", GL_FRAGMENT_SHADER}}
+    };
+
+    std::map<ShaderType, ShaderSource> Shaders;
+
+
     std::string line;
-    std::stringstream ss[2];
     ShaderType type = ShaderType::NONE;
 
     while (getline(stream, line))
@@ -85,25 +103,49 @@ GLuint Shader::CompileShader()
             if (line.find("vertex") != std::string::npos)
             {
                 type = ShaderType::VERTEX;
-            } else if (line.find("fragment") != std::string::npos) {
-                type = ShaderType::FRAGMENT;
+                GLCall(GLuint VertexShaderID = glCreateShader(GL_VERTEX_SHADER));
+                Shaders.insert(std::make_pair<ShaderType, ShaderSource>(VERTEX, {VertexShaderID, std::stringstream()}));
             }
-        } else {
-            ss[(int)type] << line << '\n';
+            else if (line.find("geometry") != std::string::npos)
+            {
+                type = ShaderType::GEOMETRY;
+                GLCall(GLuint GeometryShaderID = glCreateShader(GL_GEOMETRY_SHADER));
+                Shaders.insert(std::make_pair<ShaderType, ShaderSource>(GEOMETRY, {GeometryShaderID, std::stringstream()}));
+
+            }
+            else if (line.find("fragment") != std::string::npos)
+            {
+                type = ShaderType::FRAGMENT;
+                GLCall(GLuint FragmentShaderID = glCreateShader(GL_FRAGMENT_SHADER));
+                Shaders.insert(std::make_pair<ShaderType, ShaderSource>(FRAGMENT, {FragmentShaderID, std::stringstream()}));
+
+            }
+        }
+        else
+        {
+            Shaders.at(type).ShaderSrc << line << '\n';
         }
     }
 
-    for (int i=0; i<2; i++)
+    if (!Shaders.count(VERTEX) || !Shaders.count(FRAGMENT))
     {
-        GLuint ShaderID = i == 0 ? VertexShaderID : FragmentShaderID;
+        std::cout << "ERROR: shader '" << m_FilePath << "' needs both a vertex and a fragment shader" << std::endl;
+    }
+
+    for (const auto& it : Shaders)
+    {
+        ShaderType type = it.first;
+        const ShaderSource& ShaderSrc = it.second;
+
+        GLuint ShaderID = ShaderSrc.ShaderID;
 
         int InfoLogLength;
         GLint result = GL_FALSE;
 
-        std::cout << "Compiling " << (i == 0 ? "Vertex" : "Fragment") << " Shader" << std::endl;
-        std::string code = ss[i].str();
-        char const * VertexSourcePointer = code.c_str();
-        GLCall(glShaderSource(ShaderID, 1, &VertexSourcePointer, NULL));
+        std::cout << "Compiling " << ShaderTypes.at(type).shaderName << " Shader" << std::endl;
+        std::string code = ShaderSrc.ShaderSrc.str();
+        char const * ShaderSourcePointer = code.c_str();
+        GLCall(glShaderSource(ShaderID, 1, &ShaderSourcePointer, NULL));
         GLCall(glCompileShader(ShaderID));
         
         GLCall(glGetShaderiv(ShaderID, GL_COMPILE_STATUS, &result));
@@ -119,15 +161,16 @@ GLuint Shader::CompileShader()
 
     std::cout << "Linking program\n";
     GLCall(GLuint ProgramID = glCreateProgram());
-    GLCall(glAttachShader(ProgramID, VertexShaderID));
-    GLCall(glAttachShader(ProgramID, FragmentShaderID));
+    for (const auto& it : Shaders)
+    {
+        GLCall(glAttachShader(ProgramID, it.second.ShaderID));
+    }
     GLCall(glLinkProgram(ProgramID));
 
-    GLCall(glDetachShader(ProgramID, VertexShaderID));
-    GLCall(glDetachShader(ProgramID, FragmentShaderID));
-
-    GLCall(glDeleteShader(VertexShaderID));
-    GLCall(glDeleteShader(FragmentShaderID));
+    for (const auto& it : Shaders)
+    {
+        GLCall(glDeleteShader(it.second.ShaderID));
+    }
 
     return ProgramID;
 
