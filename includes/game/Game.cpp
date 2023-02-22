@@ -428,8 +428,8 @@ void Game::Draw()
 
     GLCall(glDrawElements(GL_TRIANGLES, m_ScreenQuad.IndexCount(), GL_UNSIGNED_INT, nullptr));
 
-    // GLCall(glBindFramebuffer(GL_FRAMEBUFFER, m_ssaoFrameBuffer));
-    // glClear(GL_COLOR_BUFFER_BIT);
+    m_ssaoFrameBuffer.Bind();
+    glClear(GL_COLOR_BUFFER_BIT);
 
     // GLCall(glActiveTexture(GL_TEXTURE0));
     // m_ssaoFrameBuffer.Texture.Bind();
@@ -440,7 +440,7 @@ void Game::Draw()
     // SSAOShader->SetUniform1i("textureSlot", 0);
     // SSAOShader->SetUniform1i("depthTextureSlot", 2);
 
-    // GLCall(glDrawElements(GL_TRIANGLES, m_ScreenQuad.IndexCount(), GL_UNSIGNED_INT, nullptr));
+    GLCall(glDrawElements(GL_TRIANGLES, m_ScreenQuad.IndexCount(), GL_UNSIGNED_INT, nullptr));
 
     if (debug_fps)
     {
