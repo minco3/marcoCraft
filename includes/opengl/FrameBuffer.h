@@ -15,6 +15,7 @@ public:
     Texture2D Texture;
     Texture2D NormalTexture;
     Texture2D DepthTexture;
+    Texture2D PositionTexture;
     
 private:
     GLuint m_RendererID;

@@ -13,13 +13,6 @@ Game::Game()
 {
     m_FrameBuffer.Unbind();
 
-    m_FrameBuffer.Bind();
-
-    const GLenum buffers[] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1 };
-    glDrawBuffers(2, buffers);
-
-    m_FrameBuffer.Unbind();
-
     buffer = allocator.alloc(512*1000*1000);
 
     m_FpsCounter.setPosition(glm::vec2(100, m_Instance->m_Height-100));
@@ -400,6 +393,9 @@ void Game::Draw()
 
     m_FrameBuffer.Bind();
 
+    const GLenum buffers[] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2 };
+    glDrawBuffers(2, buffers);
+
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     m_TextureArray.Bind();
@@ -438,7 +434,7 @@ void Game::Draw()
     m_FrameBuffer.DepthTexture.Bind();
     std::shared_ptr<Shader> ScreenShader = m_ShaderLibrary.Get("ScreenShader");
     ScreenShader->Bind();
-    ScreenShader->SetUniform1i("textureSlot", 1);
+    ScreenShader->SetUniform1i("textureSlot", 0);
     ScreenShader->SetUniform1i("depthTextureSlot", 2);
 
     GLCall(glDrawElements(GL_TRIANGLES, m_ScreenQuad.IndexCount(), GL_UNSIGNED_INT, nullptr));

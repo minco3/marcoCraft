@@ -1,40 +1,44 @@
 #shader vertex
 #version 330 core
 
-layout(location = 0) in vec3 vertexPosition_modelspace;
-layout(location = 1) in vec3 color;
-layout(location = 2) in vec3 normal;
-layout(location = 3) in vec3 coords;
+layout(location = 0) in vec3 vertexPosition;
+layout(location = 1) in vec3 vertexColor;
+layout(location = 2) in vec3 vertexNormal;
+layout(location = 3) in vec3 vertexTexCoords;
 
-out vec2 textureXY;
-flat out float textureZ;
-flat out vec3 Normal;
+out vec3 fragPosition;
+flat out vec3 flatNormal;
+out vec2 fragTexCoordsXY;
+flat out float flatTexCoordsZ;
 uniform mat4 MVP;
 
 void main()
 {
-    gl_Position = MVP * vec4(vertexPosition_modelspace, 1);
-    textureXY = coords.xy;
-    textureZ = coords.z;
-    Normal = normalize(normal);
+    fragPosition = vertexPosition;
+    flatNormal = normalize(vertexNormal);
+    fragTexCoordsXY = vertexTexCoords.xy;
+    flatTexCoordsZ = vertexTexCoords.z;
+    gl_Position = MVP * vec4(vertexPosition, 1);
 }
 
 #shader fragment
 #version 330 core
 
-in vec2 textureXY;
-flat in float textureZ;
-flat in vec3 Normal;
+in vec3 fragPosition;
+flat in vec3 flatNormal;
+in vec2 fragTexCoordsXY;
+flat in float flatTexCoordsZ;
 
-layout(location = 0) out vec4 color;
-layout(location = 1) out vec3 normal;
+layout(location = 0) out vec4 gColor;
+layout(location = 1) out vec3 gNormal;
+layout(location = 2) out vec3 gPosition;
 
-vec3 textureCoords = vec3(textureXY, textureZ);
 
 uniform sampler2DArray textureSlot;
 
 void main()
 {
-    color = texture(textureSlot, textureCoords);
-    normal = Normal;
+    gColor = texture(textureSlot, vec3(fragTexCoordsXY, flatTexCoordsZ));
+    gNormal = flatNormal;
+    gPosition = fragPosition;
 }
