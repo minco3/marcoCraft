@@ -10,6 +10,7 @@ class Quad;
 class Font;
 class Text;
 
+#include <vector>
 #include <chrono>
 
 #include "World.h"
@@ -48,7 +49,12 @@ private:
     Text m_FpsCounter;
 
     FrameBuffer m_FrameBuffer;
-    FrameBuffer m_ssaoFrameBuffer;
+    FrameBuffer m_SSAOFrameBuffer;
+    FrameBuffer m_SSAOBlurFrameBuffer;
+
+    GLenum texNoise;
+    std::vector<glm::vec3> samples;
+
     Quad m_ScreenQuad;
 
     bool mouseVisible;

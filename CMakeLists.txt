@@ -1,8 +1,7 @@
 cmake_minimum_required(VERSION 3.0.0)
 project(minecraft VERSION 0.1.0)
 
-include(CTest)
-enable_testing()
+set (CMAKE_CXX_STANDARD 20)
 
 set(INCLUDES_FOLDER includes)
 file(GLOB_RECURSE SOURCE_FILES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} CONFIGURE_DEPENDS "${INCLUDES_FOLDER}/*.cpp")

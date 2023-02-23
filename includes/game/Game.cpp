@@ -2,18 +2,66 @@
 #include "Game.h"
 
 #include <filesystem>
+#include <random>
+#include <cmath>
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "external/stb_image/stb_image.h"
 
 Game::Game()
     : running(true), m_TextureArray(GL_RGBA), grassOffset(0), offset(0), fullscreen(false), m_Font("res/arial.ttf", 48),
-    m_FpsCounter(std::make_shared<Font>(m_Font)), debug_fps(true), mouseVisible(true), m_Instance(&Application::Get()), allocated(1024), allocator(1024*1000*1000) /*1024M*/ ,
-    m_FrameBuffer(glm::ivec2(m_Instance->m_Width, m_Instance->m_Height)), m_ssaoFrameBuffer(glm::ivec2(m_Instance->m_Width, m_Instance->m_Height))
+    m_FpsCounter(std::make_shared<Font>(m_Font)), debug_fps(true), mouseVisible(true), m_Instance(&Application::Get()), allocated(1024), allocator(1024*1000*1000) /*1024M*/
 {
     m_FrameBuffer.Unbind();
 
+    m_FrameBuffer.AddAttachment(GL_COLOR_ATTACHMENT0, GL_RGBA);
+    m_FrameBuffer.AddAttachment(GL_COLOR_ATTACHMENT1, GL_RGB);
+    m_FrameBuffer.AddAttachment(GL_COLOR_ATTACHMENT2, GL_RGB);
+    m_FrameBuffer.AddAttachment(GL_DEPTH_ATTACHMENT, GL_DEPTH_COMPONENT);
+    m_FrameBuffer.CheckFrameBuffer();
+
+    m_SSAOFrameBuffer.AddAttachment(GL_COLOR_ATTACHMENT0, GL_RED);
+    m_SSAOFrameBuffer.CheckFrameBuffer();
+
+    m_SSAOBlurFrameBuffer.AddAttachment(GL_COLOR_ATTACHMENT0, GL_RED);
+    m_SSAOBlurFrameBuffer.CheckFrameBuffer();
+
+
     buffer = allocator.alloc(512*1000*1000);
+
+    std::vector<glm::vec3> ssaoNoise;
+    std::uniform_real_distribution<GLfloat> randomFloats(0.0, 1.0);
+    std::default_random_engine generator;
+
+    for (int i=0; i<64; i++)
+    {
+        glm::vec3 sample(
+            randomFloats(generator) * 2.0 - 1.0,
+            randomFloats(generator) * 2.0 - 1.0,
+            randomFloats(generator)
+        );
+        sample = glm::normalize(sample);
+        sample *= randomFloats(generator);
+
+        float scale = float(i) / 64.0;
+        sample *= std::lerp(0.1f, 1.0f, scale * scale);
+        samples.push_back(sample);
+
+    }
+    for (int i=0; i<16; i++)
+    {
+        glm::vec3 noise(randomFloats(generator) * 2.0 - 1.0, randomFloats(generator) * 2.0 - 1.0, 0.0);
+        ssaoNoise.push_back(noise);
+    }
+
+    GLCall(glGenTextures(1, &texNoise));
+    GLCall(glBindTexture(GL_TEXTURE_2D, texNoise));
+    GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST));
+    GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST));
+    GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT));
+    GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT));
+    GLCall(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F, 4, 4, 0, GL_RGB, GL_FLOAT, ssaoNoise.data()));
+
 
     m_FpsCounter.setPosition(glm::vec2(100, m_Instance->m_Height-100));
     m_FpsCounter.SetScreenSize(m_Instance->m_Width, m_Instance->m_Height);
@@ -391,10 +439,7 @@ void Game::Draw()
 {
     GLCall(glEnable(GL_DEPTH_TEST));
 
-    m_FrameBuffer.Bind();
-
-    const GLenum buffers[] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2 };
-    glDrawBuffers(3, buffers);
+    m_FrameBuffer.BindBuffers();
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -414,44 +459,53 @@ void Game::Draw()
     CubeShader->SetUniform1i("textureSlot", 1);
     GLCall(glDrawArrays(GL_TRIANGLES, 0, grassOffset/(12*sizeof(float))));
 
-    // std::shared_ptr<Shader> NormalShader = m_ShaderLibrary.Get("NormalShader");
-    // NormalShader->Bind();
-    // NormalShader->SetUniformMat4fv("MVP", m_Camera.getMVP());
-
-    m_FrameBuffer.Unbind();
 
     GLCall(glDisable(GL_DEPTH_TEST));
 
     m_ScreenQuad.Bind();
     
-    GLCall(glActiveTexture(GL_TEXTURE0));
-    m_FrameBuffer.Texture.Bind();
-    GLCall(glActiveTexture(GL_TEXTURE1));
-    m_FrameBuffer.NormalTexture.Bind();
-    GLCall(glActiveTexture(GL_TEXTURE2));
-    m_FrameBuffer.PositionTexture.Bind();
-    GLCall(glActiveTexture(GL_TEXTURE3));
-    m_FrameBuffer.DepthTexture.Bind();
+    m_FrameBuffer.BindTexture(GL_TEXTURE0, GL_COLOR_ATTACHMENT0);
+    m_FrameBuffer.BindTexture(GL_TEXTURE1, GL_COLOR_ATTACHMENT1);
+    m_FrameBuffer.BindTexture(GL_TEXTURE2, GL_COLOR_ATTACHMENT2);
+    m_FrameBuffer.BindTexture(GL_TEXTURE3, GL_DEPTH_ATTACHMENT);
+
+    glActiveTexture(GL_TEXTURE4);
+    GLCall(glBindTexture(GL_TEXTURE_2D, texNoise));
+
+    std::shared_ptr<Shader> SSAOShader = m_ShaderLibrary.Get("SSAOShader");
+    SSAOShader->Bind();
+    SSAOShader->SetUniform1i("gNormal", 1);
+    SSAOShader->SetUniform1i("gPosition", 2);
+    SSAOShader->SetUniform1i("texNoise", 4);
+    SSAOShader->SetUniformMat4fv("Projection", glm::perspective(glm::radians(45.0f), (float)m_Instance->m_Width / (float)m_Instance->m_Height, 0.1f, 100.0f));
+    for (int i=0; i<64; i++)
+    {
+        SSAOShader->SetUniform3f("samples[" + std::to_string(i) + "]", samples[i]);
+    }
+
+    m_SSAOFrameBuffer.BindBuffers();
+    GLCall(glDrawElements(GL_TRIANGLES, m_ScreenQuad.IndexCount(), GL_UNSIGNED_INT, nullptr));
+    m_SSAOFrameBuffer.BindTexture(GL_TEXTURE4, GL_COLOR_ATTACHMENT0);
+    m_SSAOFrameBuffer.Unbind();
+
+
+    std::shared_ptr<Shader> SSAOBlurShader = m_ShaderLibrary.Get("SSAOBlurShader");
+    SSAOBlurShader->Bind();
+    SSAOBlurShader->SetUniform1i("ssaoTexture", 4);
+
+    m_SSAOBlurFrameBuffer.BindBuffers();
+    GLCall(glDrawElements(GL_TRIANGLES, m_ScreenQuad.IndexCount(), GL_UNSIGNED_INT, nullptr));
+    m_SSAOBlurFrameBuffer.BindTexture(GL_TEXTURE4, GL_COLOR_ATTACHMENT0);
+    m_SSAOBlurFrameBuffer.Unbind();
+
+
     std::shared_ptr<Shader> ScreenShader = m_ShaderLibrary.Get("ScreenShader");
     ScreenShader->Bind();
     ScreenShader->SetUniform1i("gAlbedo", 0);
     ScreenShader->SetUniform1i("gNormal", 1);
     ScreenShader->SetUniform1i("gPosition", 2);
     ScreenShader->SetUniform1i("gDepth", 3);
-
-    GLCall(glDrawElements(GL_TRIANGLES, m_ScreenQuad.IndexCount(), GL_UNSIGNED_INT, nullptr));
-
-    m_ssaoFrameBuffer.Bind();
-    glClear(GL_COLOR_BUFFER_BIT);
-
-    // GLCall(glActiveTexture(GL_TEXTURE0));
-    // m_ssaoFrameBuffer.Texture.Bind();
-    // GLCall(glActiveTexture(GL_TEXTURE2));
-    // m_ssaoFrameBuffer.DepthTexture.Bind();
-    // std::shared_ptr<Shader> SSAOShader = m_ShaderLibrary.Get("SSAOShader");
-    // SSAOShader->Bind();
-    // SSAOShader->SetUniform1i("textureSlot", 0);
-    // SSAOShader->SetUniform1i("depthTextureSlot", 2);
+    ScreenShader->SetUniform1i("ssaoTexture", 4);
 
     GLCall(glDrawElements(GL_TRIANGLES, m_ScreenQuad.IndexCount(), GL_UNSIGNED_INT, nullptr));
 

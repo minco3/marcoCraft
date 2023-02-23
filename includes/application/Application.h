@@ -51,12 +51,14 @@ public:
     ~Application();
     void Run();
 
+    glm::uvec2 WindowSize() { return glm::uvec2(m_Width, m_Height); }
+
 private:
 
     static Application* s_Instance;
 
-    int m_Width;
-    int m_Height;
+    unsigned int m_Width;
+    unsigned int m_Height;
     float m_LastFrameTime;
     SDL_Window* m_Window;
     SDL_Renderer* m_Renderer;
