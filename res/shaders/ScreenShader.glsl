@@ -46,7 +46,7 @@ void main()
     //     2.0/16, 4.0/16, 2.0/16,
     //     1.0/16, 2.0/16, 1.0/16
     // );
-    // 
+    
     // vec4 col = vec4(0.0);
     // col += kernel[0] * texture(textureSlot, textureCoords + vec2(-offset, offset )); // top left
     // col += kernel[1] * texture(textureSlot, textureCoords + vec2(0.0f,    offset )); // top center

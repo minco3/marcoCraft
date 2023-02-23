@@ -31,6 +31,8 @@ float linearizeDepth(float depth)
 
 vec4 fogColor = vec4(1.0, 1.0, 1.0, 1.0);
 
+
+
 void main()
 {
     vec4 depthValue = texture(depthTextureSlot, textureCoords);

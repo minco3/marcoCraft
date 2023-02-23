@@ -13,6 +13,7 @@ public:
     void Unbind();
 
     Texture2D Texture;
+    Texture2D NormalTexture;
     Texture2D DepthTexture;
     
 private:

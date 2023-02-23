@@ -12,6 +12,14 @@ Game::Game()
     m_FrameBuffer(glm::ivec2(m_Instance->m_Width, m_Instance->m_Height)), m_ssaoFrameBuffer(glm::ivec2(m_Instance->m_Width, m_Instance->m_Height))
 {
     m_FrameBuffer.Unbind();
+
+    m_FrameBuffer.Bind();
+
+    const GLenum buffers[] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1 };
+    glDrawBuffers(2, buffers);
+
+    m_FrameBuffer.Unbind();
+
     buffer = allocator.alloc(512*1000*1000);
 
     m_FpsCounter.setPosition(glm::vec2(100, m_Instance->m_Height-100));
@@ -175,87 +183,87 @@ Game::Game()
         {
             glm::vec3 pos = b.position;
             Model m = models.at(b.model);        
-            
+
             if (b.facesVisible[0]) // face 1
             {
-                float face [6][9] = {
-                    { pos.x+0.0f, pos.y+1.0f, pos.z+1.0f,  0.6f, 0.8f, 0.4f,  1.0f, 0.0f, (float)m.front }, //2
-                    { pos.x+0.0f, pos.y+0.0f, pos.z+0.0f,  0.6f, 0.8f, 0.4f,  0.0f, 1.0f, (float)m.front }, //0
-                    { pos.x+0.0f, pos.y+0.0f, pos.z+1.0f,  0.6f, 0.8f, 0.4f,  1.0f, 1.0f, (float)m.front }, //1
-                    { pos.x+0.0f, pos.y+1.0f, pos.z+1.0f,  0.6f, 0.8f, 0.4f,  1.0f, 0.0f, (float)m.front }, //2
-                    { pos.x+0.0f, pos.y+1.0f, pos.z+0.0f,  0.6f, 0.8f, 0.4f,  0.0f, 0.0f, (float)m.front }, //4
-                    { pos.x+0.0f, pos.y+0.0f, pos.z+0.0f,  0.6f, 0.8f, 0.4f,  0.0f, 1.0f, (float)m.front } //0
+                float face [6][12] = {
+                    { pos.x+0.0f, pos.y+1.0f, pos.z+1.0f,  0.6f, 0.8f, 0.4f,  0.0,  0.0,  0.0, 1.0f, 0.0f, (float)m.front }, //2
+                    { pos.x+0.0f, pos.y+0.0f, pos.z+0.0f,  0.6f, 0.8f, 0.4f,  0.0,  0.0,  0.0, 0.0f, 1.0f, (float)m.front }, //0
+                    { pos.x+0.0f, pos.y+0.0f, pos.z+1.0f,  0.6f, 0.8f, 0.4f,  -1.0,  0.0,  0.0, 1.0f, 1.0f, (float)m.front }, //1
+                    { pos.x+0.0f, pos.y+1.0f, pos.z+1.0f,  0.6f, 0.8f, 0.4f,  0.0,  0.0,  0.0, 1.0f, 0.0f, (float)m.front }, //2
+                    { pos.x+0.0f, pos.y+1.0f, pos.z+0.0f,  0.6f, 0.8f, 0.4f,  0.0,  0.0,  0.0, 0.0f, 0.0f, (float)m.front }, //4
+                    { pos.x+0.0f, pos.y+0.0f, pos.z+0.0f,  0.6f, 0.8f, 0.4f,  -1.0,  0.0,  0.0, 0.0f, 1.0f, (float)m.front } //0
                 };
-                memcpy(buffer+localOffset, face, 6*9*sizeof(float));
-                localOffset+=6*9*sizeof(float);
+                memcpy(buffer+localOffset, face, 6*12*sizeof(float));
+                localOffset+=6*12*sizeof(float);
             }
             if (b.facesVisible[1]) // face 2 (bottom)
             {
-                float face [6][9] = {
-                    { pos.x+1.0f, pos.y+0.0f, pos.z+1.0f,  1.0f, 1.0f, 1.0f,  1.0f, 0.0f, (float)m.bottom }, //5
-                    { pos.x+0.0f, pos.y+0.0f, pos.z+0.0f,  1.0f, 1.0f, 1.0f,  0.0f, 1.0f, (float)m.bottom }, //0
-                    { pos.x+1.0f, pos.y+0.0f, pos.z+0.0f,  1.0f, 1.0f, 1.0f,  1.0f, 1.0f, (float)m.bottom }, //6
-                    { pos.x+1.0f, pos.y+0.0f, pos.z+1.0f,  1.0f, 1.0f, 1.0f,  1.0f, 0.0f, (float)m.bottom }, //5
-                    { pos.x+0.0f, pos.y+0.0f, pos.z+1.0f,  1.0f, 1.0f, 1.0f,  0.0f, 0.0f, (float)m.bottom }, //1
-                    { pos.x+0.0f, pos.y+0.0f, pos.z+0.0f,  1.0f, 1.0f, 1.0f,  0.0f, 1.0f, (float)m.bottom }, //0
+                float face [6][12] = {
+                    { pos.x+1.0f, pos.y+0.0f, pos.z+1.0f,  1.0f, 1.0f, 1.0f,  0.0,  0.0,  0.0, 1.0f, 0.0f, (float)m.bottom }, //5
+                    { pos.x+0.0f, pos.y+0.0f, pos.z+0.0f,  1.0f, 1.0f, 1.0f,  0.0,  0.0,  0.0, 0.0f, 1.0f, (float)m.bottom }, //0
+                    { pos.x+1.0f, pos.y+0.0f, pos.z+0.0f,  1.0f, 1.0f, 1.0f,  0.0,  -1.0,  0.0, 1.0f, 1.0f, (float)m.bottom }, //6
+                    { pos.x+1.0f, pos.y+0.0f, pos.z+1.0f,  1.0f, 1.0f, 1.0f,  0.0,  0.0,  0.0, 1.0f, 0.0f, (float)m.bottom }, //5
+                    { pos.x+0.0f, pos.y+0.0f, pos.z+1.0f,  1.0f, 1.0f, 1.0f,  0.0,  0.0,  0.0, 0.0f, 0.0f, (float)m.bottom }, //1
+                    { pos.x+0.0f, pos.y+0.0f, pos.z+0.0f,  1.0f, 1.0f, 1.0f,  0.0,  -1.0,  0.0, 0.0f, 1.0f, (float)m.bottom }, //0
                 };
-                memcpy(buffer+localOffset, face, 6*9*sizeof(float));
-                localOffset+=6*9*sizeof(float);
+                memcpy(buffer+localOffset, face, 6*12*sizeof(float));
+                localOffset+=6*12*sizeof(float);
             }
             if (b.facesVisible[2]) // face 3
             {
-                float face [6][9] = {
-                    { pos.x+1.0f, pos.y+1.0f, pos.z+0.0f,  0.6f, 0.8f, 0.4f,  1.0f, 0.0f, (float)m.left }, //3
-                    { pos.x+0.0f, pos.y+0.0f, pos.z+0.0f,  0.6f, 0.8f, 0.4f,  0.0f, 1.0f, (float)m.left }, //0
-                    { pos.x+0.0f, pos.y+1.0f, pos.z+0.0f,  0.6f, 0.8f, 0.4f,  0.0f, 0.0f, (float)m.left }, //4
-                    { pos.x+0.0f, pos.y+0.0f, pos.z+0.0f,  0.6f, 0.8f, 0.4f,  0.0f, 1.0f, (float)m.left }, //0
-                    { pos.x+1.0f, pos.y+1.0f, pos.z+0.0f,  0.6f, 0.8f, 0.4f,  1.0f, 0.0f, (float)m.left }, //3
-                    { pos.x+1.0f, pos.y+0.0f, pos.z+0.0f,  0.6f, 0.8f, 0.4f,  1.0f, 1.0f, (float)m.left }, //6
+                float face [6][12] = {
+                    { pos.x+1.0f, pos.y+1.0f, pos.z+0.0f,  0.6f, 0.8f, 0.4f,  0.0,  0.0,  0.0, 1.0f, 0.0f, (float)m.left }, //3
+                    { pos.x+0.0f, pos.y+0.0f, pos.z+0.0f,  0.6f, 0.8f, 0.4f,  0.0,  0.0,  0.0, 0.0f, 1.0f, (float)m.left }, //0
+                    { pos.x+0.0f, pos.y+1.0f, pos.z+0.0f,  0.6f, 0.8f, 0.4f,  0.0,  0.0,  -1.0, 0.0f, 0.0f, (float)m.left }, //4
+                    { pos.x+0.0f, pos.y+0.0f, pos.z+0.0f,  0.6f, 0.8f, 0.4f,  0.0,  0.0,  0.0, 0.0f, 1.0f, (float)m.left }, //0
+                    { pos.x+1.0f, pos.y+1.0f, pos.z+0.0f,  0.6f, 0.8f, 0.4f,  0.0,  0.0,  0.0, 1.0f, 0.0f, (float)m.left }, //3
+                    { pos.x+1.0f, pos.y+0.0f, pos.z+0.0f,  0.6f, 0.8f, 0.4f,  0.0,  0.0,  -1.0, 1.0f, 1.0f, (float)m.left }, //6
                 };
-                memcpy(buffer+localOffset, face, 6*9*sizeof(float));
-                localOffset+=6*9*sizeof(float);
+                memcpy(buffer+localOffset, face, 6*12*sizeof(float));
+                localOffset+=6*12*sizeof(float);
 
             }
             if (b.facesVisible[3]) // face 4
             {
-                float face [6][9] = {
-                    { pos.x+1.0f, pos.y+1.0f, pos.z+1.0f,  0.6f, 0.8f, 0.4f,  1.0f, 0.0f, (float)m.right }, //7
-                    { pos.x+1.0f, pos.y+0.0f, pos.z+0.0f,  0.6f, 0.8f, 0.4f,  0.0f, 1.0f, (float)m.right }, //6
-                    { pos.x+1.0f, pos.y+1.0f, pos.z+0.0f,  0.6f, 0.8f, 0.4f,  0.0f, 0.0f, (float)m.right }, //3
-                    { pos.x+1.0f, pos.y+0.0f, pos.z+0.0f,  0.6f, 0.8f, 0.4f,  0.0f, 1.0f, (float)m.right }, //6
-                    { pos.x+1.0f, pos.y+1.0f, pos.z+1.0f,  0.6f, 0.8f, 0.4f,  1.0f, 0.0f, (float)m.right }, //7
-                    { pos.x+1.0f, pos.y+0.0f, pos.z+1.0f,  0.6f, 0.8f, 0.4f,  1.0f, 1.0f, (float)m.right }, //5
+                float face [6][12] = {
+                    { pos.x+1.0f, pos.y+1.0f, pos.z+1.0f,  0.6f, 0.8f, 0.4f,  0.0,  0.0,  0.0, 1.0f, 0.0f, (float)m.right }, //7
+                    { pos.x+1.0f, pos.y+0.0f, pos.z+0.0f,  0.6f, 0.8f, 0.4f,  0.0,  0.0,  0.0, 0.0f, 1.0f, (float)m.right }, //6
+                    { pos.x+1.0f, pos.y+1.0f, pos.z+0.0f,  0.6f, 0.8f, 0.4f,  1.0,  0.0,  0.0, 0.0f, 0.0f, (float)m.right }, //3
+                    { pos.x+1.0f, pos.y+0.0f, pos.z+0.0f,  0.6f, 0.8f, 0.4f,  0.0,  0.0,  0.0, 0.0f, 1.0f, (float)m.right }, //6
+                    { pos.x+1.0f, pos.y+1.0f, pos.z+1.0f,  0.6f, 0.8f, 0.4f,  0.0,  0.0,  0.0, 1.0f, 0.0f, (float)m.right }, //7
+                    { pos.x+1.0f, pos.y+0.0f, pos.z+1.0f,  0.6f, 0.8f, 0.4f,  1.0,  0.0,  0.0, 1.0f, 1.0f, (float)m.right }, //5
                 };
-                memcpy(buffer+localOffset, face, 6*9*sizeof(float));
-                localOffset+=6*9*sizeof(float);
+                memcpy(buffer+localOffset, face, 6*12*sizeof(float));
+                localOffset+=6*12*sizeof(float);
 
             }
             if (b.facesVisible[4]) // face 5
             {
-                float face [6][9] = {
-                    { pos.x+1.0f, pos.y+1.0f, pos.z+1.0f,  0.6f, 0.8f, 0.4f,  1.0f, 0.0f, 0 }, //7
-                    { pos.x+1.0f, pos.y+1.0f, pos.z+0.0f,  0.6f, 0.8f, 0.4f,  1.0f, 1.0f, 0 }, //3
-                    { pos.x+0.0f, pos.y+1.0f, pos.z+0.0f,  0.6f, 0.8f, 0.4f,  0.0f, 1.0f, (float)m.top }, //4
-                    { pos.x+1.0f, pos.y+1.0f, pos.z+1.0f,  0.6f, 0.8f, 0.4f,  1.0f, 0.0f, 0 }, //7
-                    { pos.x+0.0f, pos.y+1.0f, pos.z+0.0f,  0.6f, 0.8f, 0.4f,  0.0f, 1.0f, 0 }, //4
-                    { pos.x+0.0f, pos.y+1.0f, pos.z+1.0f,  0.6f, 0.8f, 0.4f,  0.0f, 0.0f, (float)m.top }, //2
+                float face [6][12] = {
+                    { pos.x+1.0f, pos.y+1.0f, pos.z+1.0f,  0.6f, 0.8f, 0.4f,  0.0,  0.0,  0.0, 1.0f, 0.0f, 0 }, //7
+                    { pos.x+1.0f, pos.y+1.0f, pos.z+0.0f,  0.6f, 0.8f, 0.4f,  0.0,  0.0,  0.0, 1.0f, 1.0f, 0 }, //3
+                    { pos.x+0.0f, pos.y+1.0f, pos.z+0.0f,  0.6f, 0.8f, 0.4f,  0.0,  1.0,  0.0, 0.0f, 1.0f, (float)m.top }, //4
+                    { pos.x+1.0f, pos.y+1.0f, pos.z+1.0f,  0.6f, 0.8f, 0.4f,  0.0,  0.0,  0.0, 1.0f, 0.0f, 0 }, //7
+                    { pos.x+0.0f, pos.y+1.0f, pos.z+0.0f,  0.6f, 0.8f, 0.4f,  0.0,  0.0,  0.0, 0.0f, 1.0f, 0 }, //4
+                    { pos.x+0.0f, pos.y+1.0f, pos.z+1.0f,  0.6f, 0.8f, 0.4f,  0.0,  1.0,  0.0, 0.0f, 0.0f, (float)m.top }, //2
                 };
-                memcpy(buffer+localOffset, face, 6*9*sizeof(float));
-                localOffset+=6*9*sizeof(float);
+                memcpy(buffer+localOffset, face, 6*12*sizeof(float));
+                localOffset+=6*12*sizeof(float);
 
             }
             if (b.facesVisible[5]) // face 6
             {
-                float face [6][9] = {
-                    { pos.x+1.0f, pos.y+1.0f, pos.z+1.0f,  0.6f, 0.8f, 0.4f,  1.0f, 0.0f, (float)m.back }, //7
-                    { pos.x+0.0f, pos.y+1.0f, pos.z+1.0f,  0.6f, 0.8f, 0.4f,  0.0f, 0.0f, (float)m.back }, //2
-                    { pos.x+1.0f, pos.y+0.0f, pos.z+1.0f,  0.6f, 0.8f, 0.4f,  1.0f, 1.0f, (float)m.back }, //5
-                    { pos.x+0.0f, pos.y+1.0f, pos.z+1.0f,  0.6f, 0.8f, 0.4f,  0.0f, 0.0f, (float)m.back }, //2
-                    { pos.x+0.0f, pos.y+0.0f, pos.z+1.0f,  0.6f, 0.8f, 0.4f,  0.0f, 1.0f, (float)m.back }, //1
-                    { pos.x+1.0f, pos.y+0.0f, pos.z+1.0f,  0.6f, 0.8f, 0.4f,  1.0f, 1.0f, (float)m.back }, //5
+                float face [6][12] = {
+                    { pos.x+1.0f, pos.y+1.0f, pos.z+1.0f,  0.6f, 0.8f, 0.4f,  0.0,  0.0,  0.0, 1.0f, 0.0f, (float)m.back }, //7
+                    { pos.x+0.0f, pos.y+1.0f, pos.z+1.0f,  0.6f, 0.8f, 0.4f,  0.0,  0.0,  0.0, 0.0f, 0.0f, (float)m.back }, //2
+                    { pos.x+1.0f, pos.y+0.0f, pos.z+1.0f,  0.6f, 0.8f, 0.4f,  0.0,  0.0,  1.0, 1.0f, 1.0f, (float)m.back }, //5
+                    { pos.x+0.0f, pos.y+1.0f, pos.z+1.0f,  0.6f, 0.8f, 0.4f,  0.0,  0.0,  0.0, 0.0f, 0.0f, (float)m.back }, //2
+                    { pos.x+0.0f, pos.y+0.0f, pos.z+1.0f,  0.6f, 0.8f, 0.4f,  0.0,  0.0,  0.0, 0.0f, 1.0f, (float)m.back }, //1
+                    { pos.x+1.0f, pos.y+0.0f, pos.z+1.0f,  0.6f, 0.8f, 0.4f,  0.0,  0.0,  1.0, 1.0f, 1.0f, (float)m.back }, //5
                 };
-                memcpy(buffer+localOffset, face, 6*9*sizeof(float));
-                localOffset+=6*9*sizeof(float);
+                memcpy(buffer+localOffset, face, 6*12*sizeof(float));
+                localOffset+=6*12*sizeof(float);
             }            
         }
         offset = localOffset;
@@ -269,6 +277,7 @@ Game::Game()
 
 
     VertexBufferLayout layout;
+    layout.Push(GL_FLOAT, 3);
     layout.Push(GL_FLOAT, 3);
     layout.Push(GL_FLOAT, 3);
     layout.Push(GL_FLOAT, 3);
@@ -402,18 +411,18 @@ void Game::Draw()
     CubeShader->SetUniformMat4fv("MVP", m_Camera.getMVP());
     CubeShader->SetUniform1i("textureSlot", 1);
 
-    GLCall(glDrawArrays(GL_TRIANGLES, 0, grassOffset/(9*sizeof(float))));
+    GLCall(glDrawArrays(GL_TRIANGLES, 0, grassOffset/(12*sizeof(float))));
 
-    // std::shared_ptr<Shader> GrassShader = m_ShaderLibrary.Get("GrassShader");
-    // GrassShader->Bind();
-    // GrassShader->SetUniformMat4fv("MVP", m_Camera.getMVP());
-    // GrassShader->SetUniform1i("textureSlot", 1);
+    std::shared_ptr<Shader> GrassShader = m_ShaderLibrary.Get("GrassShader");
+    GrassShader->Bind();
+    GrassShader->SetUniformMat4fv("MVP", m_Camera.getMVP());
+    GrassShader->SetUniform1i("textureSlot", 1);
 
-    std::shared_ptr<Shader> NormalShader = m_ShaderLibrary.Get("NormalShader");
-    NormalShader->Bind();
-    NormalShader->SetUniformMat4fv("MVP", m_Camera.getMVP());
+    GLCall(glDrawArrays(GL_TRIANGLES, grassOffset/(12*sizeof(float)), (offset-grassOffset)/(12*sizeof(float))));
 
-    GLCall(glDrawArrays(GL_TRIANGLES, grassOffset/(9*sizeof(float)), (offset-grassOffset)/(9*sizeof(float))));
+    // std::shared_ptr<Shader> NormalShader = m_ShaderLibrary.Get("NormalShader");
+    // NormalShader->Bind();
+    // NormalShader->SetUniformMat4fv("MVP", m_Camera.getMVP());
 
     m_FrameBuffer.Unbind();
 
@@ -423,11 +432,13 @@ void Game::Draw()
     
     GLCall(glActiveTexture(GL_TEXTURE0));
     m_FrameBuffer.Texture.Bind();
+    GLCall(glActiveTexture(GL_TEXTURE1));
+    m_FrameBuffer.NormalTexture.Bind();
     GLCall(glActiveTexture(GL_TEXTURE2));
     m_FrameBuffer.DepthTexture.Bind();
     std::shared_ptr<Shader> ScreenShader = m_ShaderLibrary.Get("ScreenShader");
     ScreenShader->Bind();
-    ScreenShader->SetUniform1i("textureSlot", 0);
+    ScreenShader->SetUniform1i("textureSlot", 1);
     ScreenShader->SetUniform1i("depthTextureSlot", 2);
 
     GLCall(glDrawElements(GL_TRIANGLES, m_ScreenQuad.IndexCount(), GL_UNSIGNED_INT, nullptr));
