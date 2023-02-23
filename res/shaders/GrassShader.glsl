@@ -34,7 +34,7 @@ layout(location = 2) out vec3 gPosition;
 in vec3 fragPosition;
 in vec2 fragTexCoordsXY;
 flat in float flatTexCoordsZ;
-flat in vec3 fragNormal;
+flat in vec3 flatNormal;
 in vec3 fragColor;
 
 uniform sampler2DArray textureSlot;
@@ -54,6 +54,6 @@ void main()
         gColor = vec4(fragColor, 1.0) * texture(textureSlot, textureCoords);
     }
 
-    gNormal = fragNormal;
+    gNormal = flatNormal;
     gPosition = fragPosition;
 }
