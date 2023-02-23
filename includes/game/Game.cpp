@@ -179,13 +179,13 @@ Game::Game()
 
             if (b.facesVisible[0]) // face 1
             {
-                float face [6][12] = {
-                    { pos.x+0.0f, pos.y+1.0f, pos.z+1.0f,  0.6f, 0.8f, 0.4f,   0.0,  0.0,  0.0, 1.0f, 0.0f, (float)m.front }, //2
-                    { pos.x+0.0f, pos.y+0.0f, pos.z+0.0f,  0.6f, 0.8f, 0.4f,   0.0,  0.0,  0.0, 0.0f, 1.0f, (float)m.front }, //0
-                    { pos.x+0.0f, pos.y+0.0f, pos.z+1.0f,  0.6f, 0.8f, 0.4f,  -1.0,  0.0,  0.0, 1.0f, 1.0f, (float)m.front }, //1
-                    { pos.x+0.0f, pos.y+1.0f, pos.z+1.0f,  0.6f, 0.8f, 0.4f,   0.0,  0.0,  0.0, 1.0f, 0.0f, (float)m.front }, //2
-                    { pos.x+0.0f, pos.y+1.0f, pos.z+0.0f,  0.6f, 0.8f, 0.4f,   0.0,  0.0,  0.0, 0.0f, 0.0f, (float)m.front }, //4
-                    { pos.x+0.0f, pos.y+0.0f, pos.z+0.0f,  0.6f, 0.8f, 0.4f,  -1.0,  0.0,  0.0, 0.0f, 1.0f, (float)m.front } //0
+                float face [6][12] = {  
+                    { pos.x+0.0f, pos.y+1.0f, pos.z+1.0f,   0.6f, 0.8f, 0.4f,   0.0,  0.0,  0.0,   1.0f, 0.0f, (float)m.front }, //2
+                    { pos.x+0.0f, pos.y+0.0f, pos.z+0.0f,   0.6f, 0.8f, 0.4f,   0.0,  0.0,  0.0,   0.0f, 1.0f, (float)m.front }, //0
+                    { pos.x+0.0f, pos.y+0.0f, pos.z+1.0f,   0.6f, 0.8f, 0.4f,  -1.0,  0.0,  0.0,   1.0f, 1.0f, (float)m.front }, //1
+                    { pos.x+0.0f, pos.y+1.0f, pos.z+1.0f,   0.6f, 0.8f, 0.4f,   0.0,  0.0,  0.0,   1.0f, 0.0f, (float)m.front }, //2
+                    { pos.x+0.0f, pos.y+1.0f, pos.z+0.0f,   0.6f, 0.8f, 0.4f,   0.0,  0.0,  0.0,   0.0f, 0.0f, (float)m.front }, //4
+                    { pos.x+0.0f, pos.y+0.0f, pos.z+0.0f,   0.6f, 0.8f, 0.4f,  -1.0,  0.0,  0.0,   0.0f, 1.0f, (float)m.front } //0
                 };
                 memcpy(buffer+localOffset, face, 6*12*sizeof(float));
                 localOffset+=6*12*sizeof(float);
@@ -193,12 +193,12 @@ Game::Game()
             if (b.facesVisible[1]) // face 2 (bottom)
             {
                 float face [6][12] = {
-                    { pos.x+1.0f, pos.y+0.0f, pos.z+1.0f,  1.0f, 1.0f, 1.0f,  0.0,   0.0,  0.0, 1.0f, 0.0f, (float)m.bottom }, //5
-                    { pos.x+0.0f, pos.y+0.0f, pos.z+0.0f,  1.0f, 1.0f, 1.0f,  0.0,   0.0,  0.0, 0.0f, 1.0f, (float)m.bottom }, //0
-                    { pos.x+1.0f, pos.y+0.0f, pos.z+0.0f,  1.0f, 1.0f, 1.0f,  0.0,  -1.0,  0.0, 1.0f, 1.0f, (float)m.bottom }, //6
-                    { pos.x+1.0f, pos.y+0.0f, pos.z+1.0f,  1.0f, 1.0f, 1.0f,  0.0,   0.0,  0.0, 1.0f, 0.0f, (float)m.bottom }, //5
-                    { pos.x+0.0f, pos.y+0.0f, pos.z+1.0f,  1.0f, 1.0f, 1.0f,  0.0,   0.0,  0.0, 0.0f, 0.0f, (float)m.bottom }, //1
-                    { pos.x+0.0f, pos.y+0.0f, pos.z+0.0f,  1.0f, 1.0f, 1.0f,  0.0,  -1.0,  0.0, 0.0f, 1.0f, (float)m.bottom }, //0
+                    { pos.x+1.0f, pos.y+0.0f, pos.z+1.0f,   1.0f, 1.0f, 1.0f,   0.0,  0.0,  0.0,   1.0f, 0.0f, (float)m.bottom }, //5
+                    { pos.x+0.0f, pos.y+0.0f, pos.z+0.0f,   1.0f, 1.0f, 1.0f,   0.0,  0.0,  0.0,   0.0f, 1.0f, (float)m.bottom }, //0
+                    { pos.x+1.0f, pos.y+0.0f, pos.z+0.0f,   1.0f, 1.0f, 1.0f,   0.0, -1.0,  0.0,   1.0f, 1.0f, (float)m.bottom }, //6
+                    { pos.x+1.0f, pos.y+0.0f, pos.z+1.0f,   1.0f, 1.0f, 1.0f,   0.0,  0.0,  0.0,   1.0f, 0.0f, (float)m.bottom }, //5
+                    { pos.x+0.0f, pos.y+0.0f, pos.z+1.0f,   1.0f, 1.0f, 1.0f,   0.0,  0.0,  0.0,   0.0f, 0.0f, (float)m.bottom }, //1
+                    { pos.x+0.0f, pos.y+0.0f, pos.z+0.0f,   1.0f, 1.0f, 1.0f,   0.0, -1.0,  0.0,   0.0f, 1.0f, (float)m.bottom }, //0
                 };
                 memcpy(buffer+localOffset, face, 6*12*sizeof(float));
                 localOffset+=6*12*sizeof(float);
@@ -206,12 +206,12 @@ Game::Game()
             if (b.facesVisible[2]) // face 3
             {
                 float face [6][12] = {
-                    { pos.x+1.0f, pos.y+1.0f, pos.z+0.0f,  0.6f, 0.8f, 0.4f,  0.0,  0.0,   0.0, 1.0f, 0.0f, (float)m.left }, //3
-                    { pos.x+0.0f, pos.y+0.0f, pos.z+0.0f,  0.6f, 0.8f, 0.4f,  0.0,  0.0,   0.0, 0.0f, 1.0f, (float)m.left }, //0
-                    { pos.x+0.0f, pos.y+1.0f, pos.z+0.0f,  0.6f, 0.8f, 0.4f,  0.0,  0.0,  -1.0, 0.0f, 0.0f, (float)m.left }, //4
-                    { pos.x+0.0f, pos.y+0.0f, pos.z+0.0f,  0.6f, 0.8f, 0.4f,  0.0,  0.0,   0.0, 0.0f, 1.0f, (float)m.left }, //0
-                    { pos.x+1.0f, pos.y+1.0f, pos.z+0.0f,  0.6f, 0.8f, 0.4f,  0.0,  0.0,   0.0, 1.0f, 0.0f, (float)m.left }, //3
-                    { pos.x+1.0f, pos.y+0.0f, pos.z+0.0f,  0.6f, 0.8f, 0.4f,  0.0,  0.0,  -1.0, 1.0f, 1.0f, (float)m.left }, //6
+                    { pos.x+1.0f, pos.y+1.0f, pos.z+0.0f,   0.6f, 0.8f, 0.4f,   0.0,  0.0,  0.0,   1.0f, 0.0f, (float)m.left }, //3
+                    { pos.x+0.0f, pos.y+0.0f, pos.z+0.0f,   0.6f, 0.8f, 0.4f,   0.0,  0.0,  0.0,   0.0f, 1.0f, (float)m.left }, //0
+                    { pos.x+0.0f, pos.y+1.0f, pos.z+0.0f,   0.6f, 0.8f, 0.4f,   0.0,  0.0, -1.0,   0.0f, 0.0f, (float)m.left }, //4
+                    { pos.x+0.0f, pos.y+0.0f, pos.z+0.0f,   0.6f, 0.8f, 0.4f,   0.0,  0.0,  0.0,   0.0f, 1.0f, (float)m.left }, //0
+                    { pos.x+1.0f, pos.y+1.0f, pos.z+0.0f,   0.6f, 0.8f, 0.4f,   0.0,  0.0,  0.0,   1.0f, 0.0f, (float)m.left }, //3
+                    { pos.x+1.0f, pos.y+0.0f, pos.z+0.0f,   0.6f, 0.8f, 0.4f,   0.0,  0.0, -1.0,   1.0f, 1.0f, (float)m.left }, //6
                 };
                 memcpy(buffer+localOffset, face, 6*12*sizeof(float));
                 localOffset+=6*12*sizeof(float);
@@ -220,13 +220,13 @@ Game::Game()
             if (b.facesVisible[3]) // face 4
             {
                 float face [6][12] = {
-                    { pos.x+1.0f, pos.y+1.0f, pos.z+1.0f,  0.6f, 0.8f, 0.4f,  0.0,  0.0,  0.0, 1.0f, 0.0f, (float)m.right }, //7
-                    { pos.x+1.0f, pos.y+0.0f, pos.z+0.0f,  0.6f, 0.8f, 0.4f,  0.0,  0.0,  0.0, 0.0f, 1.0f, (float)m.right }, //6
-                    { pos.x+1.0f, pos.y+1.0f, pos.z+0.0f,  0.6f, 0.8f, 0.4f,  1.0,  0.0,  0.0, 0.0f, 0.0f, (float)m.right }, //3
-                    { pos.x+1.0f, pos.y+0.0f, pos.z+0.0f,  0.6f, 0.8f, 0.4f,  0.0,  0.0,  0.0, 0.0f, 1.0f, (float)m.right }, //6
-                    { pos.x+1.0f, pos.y+1.0f, pos.z+1.0f,  0.6f, 0.8f, 0.4f,  0.0,  0.0,  0.0, 1.0f, 0.0f, (float)m.right }, //7
-                    { pos.x+1.0f, pos.y+0.0f, pos.z+1.0f,  0.6f, 0.8f, 0.4f,  1.0,  0.0,  0.0, 1.0f, 1.0f, (float)m.right }, //5
-                };
+                    { pos.x+1.0f, pos.y+1.0f, pos.z+1.0f,   0.6f, 0.8f, 0.4f,   0.0,  0.0,  0.0,   1.0f, 0.0f, (float)m.right }, //7
+                    { pos.x+1.0f, pos.y+0.0f, pos.z+0.0f,   0.6f, 0.8f, 0.4f,   0.0,  0.0,  0.0,   0.0f, 1.0f, (float)m.right }, //6
+                    { pos.x+1.0f, pos.y+1.0f, pos.z+0.0f,   0.6f, 0.8f, 0.4f,   1.0,  0.0,  0.0,   0.0f, 0.0f, (float)m.right }, //3
+                    { pos.x+1.0f, pos.y+0.0f, pos.z+0.0f,   0.6f, 0.8f, 0.4f,   0.0,  0.0,  0.0,   0.0f, 1.0f, (float)m.right }, //6
+                    { pos.x+1.0f, pos.y+1.0f, pos.z+1.0f,   0.6f, 0.8f, 0.4f,   0.0,  0.0,  0.0,   1.0f, 0.0f, (float)m.right }, //7
+                    { pos.x+1.0f, pos.y+0.0f, pos.z+1.0f,   0.6f, 0.8f, 0.4f,   1.0,  0.0,  0.0,   1.0f, 1.0f, (float)m.right }, //5
+                }; 
                 memcpy(buffer+localOffset, face, 6*12*sizeof(float));
                 localOffset+=6*12*sizeof(float);
 
@@ -234,12 +234,12 @@ Game::Game()
             if (b.facesVisible[4]) // face 5
             {
                 float face [6][12] = {
-                    { pos.x+1.0f, pos.y+1.0f, pos.z+1.0f,  0.6f, 0.8f, 0.4f,  0.0,  0.0,  0.0, 1.0f, 0.0f, 0 }, //7
-                    { pos.x+1.0f, pos.y+1.0f, pos.z+0.0f,  0.6f, 0.8f, 0.4f,  0.0,  0.0,  0.0, 1.0f, 1.0f, 0 }, //3
-                    { pos.x+0.0f, pos.y+1.0f, pos.z+0.0f,  0.6f, 0.8f, 0.4f,  0.0,  1.0,  0.0, 0.0f, 1.0f, (float)m.top }, //4
-                    { pos.x+1.0f, pos.y+1.0f, pos.z+1.0f,  0.6f, 0.8f, 0.4f,  0.0,  0.0,  0.0, 1.0f, 0.0f, 0 }, //7
-                    { pos.x+0.0f, pos.y+1.0f, pos.z+0.0f,  0.6f, 0.8f, 0.4f,  0.0,  0.0,  0.0, 0.0f, 1.0f, 0 }, //4
-                    { pos.x+0.0f, pos.y+1.0f, pos.z+1.0f,  0.6f, 0.8f, 0.4f,  0.0,  1.0,  0.0, 0.0f, 0.0f, (float)m.top }, //2
+                    { pos.x+1.0f, pos.y+1.0f, pos.z+1.0f,  0.6f, 0.8f, 0.4f,  0.0,  0.0,  0.0,   1.0f, 0.0f, 0 }, //7
+                    { pos.x+1.0f, pos.y+1.0f, pos.z+0.0f,  0.6f, 0.8f, 0.4f,  0.0,  0.0,  0.0,   1.0f, 1.0f, 0 }, //3
+                    { pos.x+0.0f, pos.y+1.0f, pos.z+0.0f,  0.6f, 0.8f, 0.4f,  0.0,  1.0,  0.0,   0.0f, 1.0f, (float)m.top }, //4
+                    { pos.x+1.0f, pos.y+1.0f, pos.z+1.0f,  0.6f, 0.8f, 0.4f,  0.0,  0.0,  0.0,   1.0f, 0.0f, 0 }, //7
+                    { pos.x+0.0f, pos.y+1.0f, pos.z+0.0f,  0.6f, 0.8f, 0.4f,  0.0,  0.0,  0.0,   0.0f, 1.0f, 0 }, //4
+                    { pos.x+0.0f, pos.y+1.0f, pos.z+1.0f,  0.6f, 0.8f, 0.4f,  0.0,  1.0,  0.0,   0.0f, 0.0f, (float)m.top }, //2
                 };
                 memcpy(buffer+localOffset, face, 6*12*sizeof(float));
                 localOffset+=6*12*sizeof(float);
@@ -248,12 +248,12 @@ Game::Game()
             if (b.facesVisible[5]) // face 6
             {
                 float face [6][12] = {
-                    { pos.x+1.0f, pos.y+1.0f, pos.z+1.0f,  0.6f, 0.8f, 0.4f,  0.0,  0.0,  0.0, 1.0f, 0.0f, (float)m.back }, //7
-                    { pos.x+0.0f, pos.y+1.0f, pos.z+1.0f,  0.6f, 0.8f, 0.4f,  0.0,  0.0,  0.0, 0.0f, 0.0f, (float)m.back }, //2
-                    { pos.x+1.0f, pos.y+0.0f, pos.z+1.0f,  0.6f, 0.8f, 0.4f,  0.0,  0.0,  1.0, 1.0f, 1.0f, (float)m.back }, //5
-                    { pos.x+0.0f, pos.y+1.0f, pos.z+1.0f,  0.6f, 0.8f, 0.4f,  0.0,  0.0,  0.0, 0.0f, 0.0f, (float)m.back }, //2
-                    { pos.x+0.0f, pos.y+0.0f, pos.z+1.0f,  0.6f, 0.8f, 0.4f,  0.0,  0.0,  0.0, 0.0f, 1.0f, (float)m.back }, //1
-                    { pos.x+1.0f, pos.y+0.0f, pos.z+1.0f,  0.6f, 0.8f, 0.4f,  0.0,  0.0,  1.0, 1.0f, 1.0f, (float)m.back }, //5
+                    { pos.x+1.0f, pos.y+1.0f, pos.z+1.0f,  0.6f, 0.8f, 0.4f,  0.0,  0.0,  0.0,   1.0f, 0.0f, (float)m.back }, //7
+                    { pos.x+0.0f, pos.y+1.0f, pos.z+1.0f,  0.6f, 0.8f, 0.4f,  0.0,  0.0,  0.0,   0.0f, 0.0f, (float)m.back }, //2
+                    { pos.x+1.0f, pos.y+0.0f, pos.z+1.0f,  0.6f, 0.8f, 0.4f,  0.0,  0.0,  1.0,   1.0f, 1.0f, (float)m.back }, //5
+                    { pos.x+0.0f, pos.y+1.0f, pos.z+1.0f,  0.6f, 0.8f, 0.4f,  0.0,  0.0,  0.0,   0.0f, 0.0f, (float)m.back }, //2
+                    { pos.x+0.0f, pos.y+0.0f, pos.z+1.0f,  0.6f, 0.8f, 0.4f,  0.0,  0.0,  0.0,   0.0f, 1.0f, (float)m.back }, //1
+                    { pos.x+1.0f, pos.y+0.0f, pos.z+1.0f,  0.6f, 0.8f, 0.4f,  0.0,  0.0,  1.0,   1.0f, 1.0f, (float)m.back }, //5
                 };
                 memcpy(buffer+localOffset, face, 6*12*sizeof(float));
                 localOffset+=6*12*sizeof(float);
@@ -394,7 +394,7 @@ void Game::Draw()
     m_FrameBuffer.Bind();
 
     const GLenum buffers[] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2 };
-    glDrawBuffers(2, buffers);
+    glDrawBuffers(3, buffers);
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -402,19 +402,17 @@ void Game::Draw()
 
     m_VertexArray.Bind();
 
-    std::shared_ptr<Shader> CubeShader = m_ShaderLibrary.Get("CubeShader");
-    CubeShader->Bind();
-    CubeShader->SetUniformMat4fv("MVP", m_Camera.getMVP());
-    CubeShader->SetUniform1i("textureSlot", 1);
-
-    GLCall(glDrawArrays(GL_TRIANGLES, 0, grassOffset/(12*sizeof(float))));
-
     std::shared_ptr<Shader> GrassShader = m_ShaderLibrary.Get("GrassShader");
     GrassShader->Bind();
     GrassShader->SetUniformMat4fv("MVP", m_Camera.getMVP());
     GrassShader->SetUniform1i("textureSlot", 1);
-
     GLCall(glDrawArrays(GL_TRIANGLES, grassOffset/(12*sizeof(float)), (offset-grassOffset)/(12*sizeof(float))));
+
+    std::shared_ptr<Shader> CubeShader = m_ShaderLibrary.Get("CubeShader");
+    CubeShader->Bind();
+    CubeShader->SetUniformMat4fv("MVP", m_Camera.getMVP());
+    CubeShader->SetUniform1i("textureSlot", 1);
+    GLCall(glDrawArrays(GL_TRIANGLES, 0, grassOffset/(12*sizeof(float))));
 
     // std::shared_ptr<Shader> NormalShader = m_ShaderLibrary.Get("NormalShader");
     // NormalShader->Bind();
@@ -436,8 +434,10 @@ void Game::Draw()
     m_FrameBuffer.DepthTexture.Bind();
     std::shared_ptr<Shader> ScreenShader = m_ShaderLibrary.Get("ScreenShader");
     ScreenShader->Bind();
-    ScreenShader->SetUniform1i("textureSlot", 0);
-    ScreenShader->SetUniform1i("depthTextureSlot", 2);
+    ScreenShader->SetUniform1i("gAlbedo", 0);
+    ScreenShader->SetUniform1i("gNormal", 1);
+    ScreenShader->SetUniform1i("gPosition", 2);
+    ScreenShader->SetUniform1i("gDepth", 3);
 
     GLCall(glDrawElements(GL_TRIANGLES, m_ScreenQuad.IndexCount(), GL_UNSIGNED_INT, nullptr));
 
