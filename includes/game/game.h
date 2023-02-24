@@ -60,6 +60,7 @@ private:
     bool mouseVisible;
     bool fullscreen;
     bool debug_fps;
+    bool m_Occlusion;
 
     int allocated;
     Alloc allocator;

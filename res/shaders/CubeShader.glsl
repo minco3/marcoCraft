@@ -10,15 +10,23 @@ out vec3 fragPosition;
 flat out vec3 flatNormal;
 out vec2 fragTexCoordsXY;
 flat out float flatTexCoordsZ;
+
+
+uniform mat4 view;
+uniform mat4 model;
 uniform mat4 MVP;
 
 void main()
 {
-    fragPosition = vertexPosition;
-    flatNormal = normalize(vertexNormal);
+    vec4 viewPos = view * model * vec4(vertexPosition, 1.0);
+    fragPosition = viewPos.xyz;
+    
+    mat3 normalMatrix = transpose(inverse(mat3(view * model)));
+    flatNormal = normalMatrix * vertexNormal;
+
     fragTexCoordsXY = vertexTexCoords.xy;
     flatTexCoordsZ = vertexTexCoords.z;
-    gl_Position = MVP * vec4(vertexPosition, 1);
+    gl_Position = MVP * vec4(vertexPosition, 1.0);
 }
 
 #shader fragment

@@ -45,9 +45,9 @@ vec4 fogColor = vec4(1.0, 1.0, 1.0, 1.0);
 void main()
 {
 
-    vec3 fragPos = texture(gPosition, fragTexCoords).rgb;
+    vec3 fragPos = texture(gPosition, fragTexCoords).xyz;
     vec3 normal = normalize(texture(gNormal, fragTexCoords).rgb);
-    vec3 randomVec = texture(texNoise, fragTexCoords).rgb;
+    vec3 randomVec = texture(texNoise, fragTexCoords * noiseScale).xyz;
 
     vec3 tangent = normalize(randomVec - normal * dot(randomVec, normal));
 
@@ -64,10 +64,14 @@ void main()
         vec4 offset = vec4(sample, 1.0);
 
         offset = Projection * offset;
+        offset.xyz /= offset.w;
+        offset.xyz = offset.xyz * 0.5 + 0.5;
 
         vec3 occludorPos = texture(gPosition, offset.xy).rgb;
 
-        occlusion += (occludorPos.z >= sample.z + bias ? 1.0 : 0.0);
+        float rangeCheck = smoothstep(0.0, 1.0, radius / length(fragPos - occludorPos));
+
+        occlusion += (occludorPos.z >= sample.z + bias ? 1.0 : 0.0) * rangeCheck;
     }
 
     color = 1.0 - occlusion / kernelSize;

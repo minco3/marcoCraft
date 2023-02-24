@@ -25,6 +25,9 @@ uniform sampler2D gPosition;
 uniform sampler2D gDepth;
 uniform sampler2D ssaoTexture;
 
+uniform vec3 lightPos;
+uniform bool occlusion;
+
 float near = 0.1f;
 float far = 100.0f;
 
@@ -37,7 +40,6 @@ vec4 fogColor = vec4(1.0, 1.0, 1.0, 1.0);
 
 const float offset = 1.0 / 600.0;
 
-vec3 lightPos = vec3(10.0, 70.0, 100.0);
 vec3 lightColor = vec3(1.0, 1.0, 1.0);
 
 void main()
@@ -45,13 +47,15 @@ void main()
     vec3 FragPos = texture(gPosition, texCoords).rgb;
     vec3 Normal = texture(gNormal, texCoords).rgb;
     vec3 Diffuse = texture(gAlbedo, texCoords).rgb;
+    float AmbientOcclusion = texture(ssaoTexture, texCoords).r;
 
-    vec3 lighting = Diffuse * 0.2; //ambient
+    vec3 lighting = Diffuse * 0.5 * (occlusion ? pow(AmbientOcclusion,2) : 1.0); //ambient
 
     vec3 lightDir = normalize(lightPos - FragPos);
     vec3 diffuse = max(dot(Normal, lightDir), 0.0) * Diffuse * lightColor;
 
     lighting += diffuse;
+
 
     // float kernel[9] = float[](
     //     -1, -1, -1,
@@ -65,16 +69,16 @@ void main()
     // );
     
     // vec4 col = vec4(0.0);
-    // col += kernel[0] * texture(textureSlot, textureCoords + vec2(-offset, offset )); // top left
-    // col += kernel[1] * texture(textureSlot, textureCoords + vec2(0.0f,    offset )); // top center
-    // col += kernel[2] * texture(textureSlot, textureCoords + vec2(offset,  offset )); // top right
-    // col += kernel[3] * texture(textureSlot, textureCoords + vec2(-offset, 0.0f   )); // left
-    // col += kernel[4] * texture(textureSlot, textureCoords + vec2(0.0f,    0.0f   )); // center
-    // col += kernel[5] * texture(textureSlot, textureCoords + vec2(offset,  0.0f   )); // right
-    // col += kernel[6] * texture(textureSlot, textureCoords + vec2(-offset, -offset)); // bottom left
-    // col += kernel[7] * texture(textureSlot, textureCoords + vec2(0.0f,    -offset)); // bottom center
-    // col += kernel[8] * texture(textureSlot, textureCoords + vec2(offset,  -offset)); // bottom right
-    // color = col;
+    // col += kernel[0] * texture(gAlbedo, texCoords + vec2(-offset, offset )); // top left
+    // col += kernel[1] * texture(gAlbedo, texCoords + vec2(0.0f,    offset )); // top center
+    // col += kernel[2] * texture(gAlbedo, texCoords + vec2(offset,  offset )); // top right
+    // col += kernel[3] * texture(gAlbedo, texCoords + vec2(-offset, 0.0f   )); // left
+    // col += kernel[4] * texture(gAlbedo, texCoords + vec2(0.0f,    0.0f   )); // center
+    // col += kernel[5] * texture(gAlbedo, texCoords + vec2(offset,  0.0f   )); // right
+    // col += kernel[6] * texture(gAlbedo, texCoords + vec2(-offset, -offset)); // bottom left
+    // col += kernel[7] * texture(gAlbedo, texCoords + vec2(0.0f,    -offset)); // bottom center
+    // col += kernel[8] * texture(gAlbedo, texCoords + vec2(offset,  -offset)); // bottom right
+    // fragColor = col;
 
     // vec4 depthValue = texture(gDepth, texCoords);
     // float depth = depthValue.r;

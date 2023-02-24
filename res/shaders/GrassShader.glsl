@@ -12,13 +12,20 @@ flat out vec3 flatNormal;
 out vec2 fragTexCoordsXY;
 flat out float flatTexCoordsZ;
 
+uniform mat4 view;
+uniform mat4 model;
 uniform mat4 MVP;
 
 void main()
 {
-    fragPosition = vertexPosition;
+    vec4 viewPos = view * model * vec4(vertexPosition, 1.0);
+    fragPosition = viewPos.xyz;
+    
     fragColor = vertexColor;
-    flatNormal = normalize(vertexNormal);
+
+    mat3 normalMatrix = transpose(inverse(mat3(view * model)));
+    flatNormal = normalMatrix * vertexNormal;
+
     fragTexCoordsXY = vertexTexCoords.xy;
     flatTexCoordsZ = vertexTexCoords.z;
     gl_Position = MVP * vec4(vertexPosition, 1.0);

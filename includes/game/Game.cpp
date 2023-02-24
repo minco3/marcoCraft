@@ -10,14 +10,14 @@
 
 Game::Game()
     : running(true), m_TextureArray(GL_RGBA), grassOffset(0), offset(0), fullscreen(false), m_Font("res/arial.ttf", 48),
-    m_FpsCounter(std::make_shared<Font>(m_Font)), debug_fps(true), mouseVisible(true), m_Instance(&Application::Get()), allocated(1024), allocator(1024*1000*1000) /*1024M*/
+    m_FpsCounter(std::make_shared<Font>(m_Font)), debug_fps(true), mouseVisible(true), m_Occlusion(true), m_Instance(&Application::Get()), allocated(1024), allocator(1024*1000*1000) /*1024M*/
 {
     m_FrameBuffer.Unbind();
 
-    m_FrameBuffer.AddAttachment(GL_COLOR_ATTACHMENT0, GL_RGBA);
-    m_FrameBuffer.AddAttachment(GL_COLOR_ATTACHMENT1, GL_RGB);
-    m_FrameBuffer.AddAttachment(GL_COLOR_ATTACHMENT2, GL_RGB);
-    m_FrameBuffer.AddAttachment(GL_DEPTH_ATTACHMENT, GL_DEPTH_COMPONENT);
+    m_FrameBuffer.AddAttachment(GL_COLOR_ATTACHMENT0, GL_RGBA); // albedo
+    m_FrameBuffer.AddAttachment(GL_COLOR_ATTACHMENT1, GL_RGBA16F); // normal
+    m_FrameBuffer.AddAttachment(GL_COLOR_ATTACHMENT2, GL_RGB32F); // position
+    m_FrameBuffer.AddAttachment(GL_DEPTH_ATTACHMENT, GL_DEPTH_COMPONENT); // depth
     m_FrameBuffer.CheckFrameBuffer();
 
     m_SSAOFrameBuffer.AddAttachment(GL_COLOR_ATTACHMENT0, GL_RED);
@@ -205,7 +205,7 @@ Game::Game()
     glClearColor(0.0f, 0.0f, 0.4f, 0.0f);
 
     m_Camera.SetScreenSize(Application::Get().m_Width, Application::Get().m_Height);
-    m_Camera.setPosition(glm::vec3(0, 65, 0));
+    m_Camera.setPosition(glm::vec3(0, 65, 10));
 
     std::chrono::high_resolution_clock::time_point p1, p2;
     std::chrono::duration<double> duration;
@@ -418,6 +418,9 @@ void Game::Event()
             case SDLK_LSHIFT:
                 m_Camera.sprint = false;
                 break;
+            case SDLK_o:
+                m_Occlusion = !m_Occlusion;
+                break;
             }
             break;
         case SDL_MOUSEMOTION:
@@ -449,12 +452,16 @@ void Game::Draw()
 
     std::shared_ptr<Shader> GrassShader = m_ShaderLibrary.Get("GrassShader");
     GrassShader->Bind();
+    GrassShader->SetUniformMat4fv("model", glm::mat4(1.0f));
+    GrassShader->SetUniformMat4fv("view", m_Camera.getView());
     GrassShader->SetUniformMat4fv("MVP", m_Camera.getMVP());
     GrassShader->SetUniform1i("textureSlot", 1);
     GLCall(glDrawArrays(GL_TRIANGLES, grassOffset/(12*sizeof(float)), (offset-grassOffset)/(12*sizeof(float))));
 
     std::shared_ptr<Shader> CubeShader = m_ShaderLibrary.Get("CubeShader");
     CubeShader->Bind();
+    CubeShader->SetUniformMat4fv("model", glm::mat4(1.0f));
+    CubeShader->SetUniformMat4fv("view", m_Camera.getView());
     CubeShader->SetUniformMat4fv("MVP", m_Camera.getMVP());
     CubeShader->SetUniform1i("textureSlot", 1);
     GLCall(glDrawArrays(GL_TRIANGLES, 0, grassOffset/(12*sizeof(float))));
@@ -504,8 +511,12 @@ void Game::Draw()
     ScreenShader->SetUniform1i("gAlbedo", 0);
     ScreenShader->SetUniform1i("gNormal", 1);
     ScreenShader->SetUniform1i("gPosition", 2);
-    ScreenShader->SetUniform1i("gDepth", 3);
+    // ScreenShader->SetUniform1i("gDepth", 3);
     ScreenShader->SetUniform1i("ssaoTexture", 4);
+    glm::vec3 lightPos(10.0, 100.0, 70.0);
+    glm::vec3 lightPosView = glm::vec3(m_Camera.getView() * glm::vec4(lightPos, 1.0));
+    ScreenShader->SetUniform3f("lightPos", lightPosView);
+    ScreenShader->SetUniform1i("occlusion", m_Occlusion);
 
     GLCall(glDrawElements(GL_TRIANGLES, m_ScreenQuad.IndexCount(), GL_UNSIGNED_INT, nullptr));
 
