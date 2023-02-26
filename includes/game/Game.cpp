@@ -16,7 +16,7 @@ Game::Game()
 
     m_FrameBuffer.AddAttachment(GL_COLOR_ATTACHMENT0, GL_RGBA); // albedo
     m_FrameBuffer.AddAttachment(GL_COLOR_ATTACHMENT1, GL_RGBA16F); // normal
-    m_FrameBuffer.AddAttachment(GL_COLOR_ATTACHMENT2, GL_RGB32F); // position
+    m_FrameBuffer.AddAttachment(GL_COLOR_ATTACHMENT2, GL_RGB16F); // position
     m_FrameBuffer.AddAttachment(GL_DEPTH_ATTACHMENT, GL_DEPTH_COMPONENT); // depth
     m_FrameBuffer.CheckFrameBuffer();
 
@@ -450,13 +450,13 @@ void Game::Draw()
 
     m_VertexArray.Bind();
 
-    std::shared_ptr<Shader> GrassShader = m_ShaderLibrary.Get("GrassShader");
-    GrassShader->Bind();
-    GrassShader->SetUniformMat4fv("model", glm::mat4(1.0f));
-    GrassShader->SetUniformMat4fv("view", m_Camera.getView());
-    GrassShader->SetUniformMat4fv("MVP", m_Camera.getMVP());
-    GrassShader->SetUniform1i("textureSlot", 1);
-    GLCall(glDrawArrays(GL_TRIANGLES, grassOffset/(12*sizeof(float)), (offset-grassOffset)/(12*sizeof(float))));
+    // std::shared_ptr<Shader> GrassShader = m_ShaderLibrary.Get("GrassShader");
+    // GrassShader->Bind();
+    // GrassShader->SetUniformMat4fv("model", glm::mat4(1.0f));
+    // GrassShader->SetUniformMat4fv("view", m_Camera.getView());
+    // GrassShader->SetUniformMat4fv("MVP", m_Camera.getMVP());
+    // GrassShader->SetUniform1i("textureSlot", 1);
+    // GLCall(glDrawArrays(GL_TRIANGLES, grassOffset/(12*sizeof(float)), (offset-grassOffset)/(12*sizeof(float))));
 
     std::shared_ptr<Shader> CubeShader = m_ShaderLibrary.Get("CubeShader");
     CubeShader->Bind();
@@ -464,7 +464,7 @@ void Game::Draw()
     CubeShader->SetUniformMat4fv("view", m_Camera.getView());
     CubeShader->SetUniformMat4fv("MVP", m_Camera.getMVP());
     CubeShader->SetUniform1i("textureSlot", 1);
-    GLCall(glDrawArrays(GL_TRIANGLES, 0, grassOffset/(12*sizeof(float))));
+    GLCall(glDrawArrays(GL_TRIANGLES, 0, offset/12*sizeof(float)));
 
 
     GLCall(glDisable(GL_DEPTH_TEST));
@@ -474,37 +474,38 @@ void Game::Draw()
     m_FrameBuffer.BindTexture(GL_TEXTURE0, GL_COLOR_ATTACHMENT0);
     m_FrameBuffer.BindTexture(GL_TEXTURE1, GL_COLOR_ATTACHMENT1);
     m_FrameBuffer.BindTexture(GL_TEXTURE2, GL_COLOR_ATTACHMENT2);
-    m_FrameBuffer.BindTexture(GL_TEXTURE3, GL_DEPTH_ATTACHMENT);
+    m_FrameBuffer.BindTexture(GL_TEXTURE4, GL_DEPTH_ATTACHMENT);
 
-    glActiveTexture(GL_TEXTURE4);
-    GLCall(glBindTexture(GL_TEXTURE_2D, texNoise));
-
-    std::shared_ptr<Shader> SSAOShader = m_ShaderLibrary.Get("SSAOShader");
-    SSAOShader->Bind();
-    SSAOShader->SetUniform1i("gNormal", 1);
-    SSAOShader->SetUniform1i("gPosition", 2);
-    SSAOShader->SetUniform1i("texNoise", 4);
-    SSAOShader->SetUniformMat4fv("Projection", glm::perspective(glm::radians(45.0f), (float)m_Instance->m_Width / (float)m_Instance->m_Height, 0.1f, 100.0f));
-    for (int i=0; i<64; i++)
+    if(m_Occlusion)
     {
-        SSAOShader->SetUniform3f("samples[" + std::to_string(i) + "]", samples[i]);
+        glActiveTexture(GL_TEXTURE5);
+        GLCall(glBindTexture(GL_TEXTURE_2D, texNoise));
+
+        std::shared_ptr<Shader> SSAOShader = m_ShaderLibrary.Get("SSAOShader");
+        SSAOShader->Bind();
+        SSAOShader->SetUniform1i("gNormal", 1);
+        SSAOShader->SetUniform1i("gPosition", 2);
+        SSAOShader->SetUniform1i("texNoise", 5);
+        SSAOShader->SetUniformMat4fv("Projection", glm::perspective(glm::radians(45.0f), (float)m_Instance->m_Width / (float)m_Instance->m_Height, 0.1f, 100.0f));
+        for (int i=0; i<64; i++)
+        {
+            SSAOShader->SetUniform3f("samples[" + std::to_string(i) + "]", samples[i]);
+        }
+
+        m_SSAOFrameBuffer.BindBuffers();
+        GLCall(glDrawElements(GL_TRIANGLES, m_ScreenQuad.IndexCount(), GL_UNSIGNED_INT, nullptr));
+        m_SSAOFrameBuffer.BindTexture(GL_TEXTURE4, GL_COLOR_ATTACHMENT0);
+        m_SSAOFrameBuffer.Unbind();
+
+        std::shared_ptr<Shader> SSAOBlurShader = m_ShaderLibrary.Get("SSAOBlurShader");
+        SSAOBlurShader->Bind();
+        SSAOBlurShader->SetUniform1i("ssaoTexture", 4);
+
+        m_SSAOBlurFrameBuffer.BindBuffers();
+        GLCall(glDrawElements(GL_TRIANGLES, m_ScreenQuad.IndexCount(), GL_UNSIGNED_INT, nullptr));
+        m_SSAOBlurFrameBuffer.BindTexture(GL_TEXTURE4, GL_COLOR_ATTACHMENT0);
     }
-
-    m_SSAOFrameBuffer.BindBuffers();
-    GLCall(glDrawElements(GL_TRIANGLES, m_ScreenQuad.IndexCount(), GL_UNSIGNED_INT, nullptr));
-    m_SSAOFrameBuffer.BindTexture(GL_TEXTURE4, GL_COLOR_ATTACHMENT0);
-    m_SSAOFrameBuffer.Unbind();
-
-
-    std::shared_ptr<Shader> SSAOBlurShader = m_ShaderLibrary.Get("SSAOBlurShader");
-    SSAOBlurShader->Bind();
-    SSAOBlurShader->SetUniform1i("ssaoTexture", 4);
-
-    m_SSAOBlurFrameBuffer.BindBuffers();
-    GLCall(glDrawElements(GL_TRIANGLES, m_ScreenQuad.IndexCount(), GL_UNSIGNED_INT, nullptr));
-    m_SSAOBlurFrameBuffer.BindTexture(GL_TEXTURE4, GL_COLOR_ATTACHMENT0);
     m_SSAOBlurFrameBuffer.Unbind();
-
 
     std::shared_ptr<Shader> ScreenShader = m_ShaderLibrary.Get("ScreenShader");
     ScreenShader->Bind();

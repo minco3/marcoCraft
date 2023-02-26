@@ -52,6 +52,7 @@ void Texture2D::SetInternalFormat(GLuint format)
         m_DataFormat = GL_DEPTH_COMPONENT;
         m_DataType = GL_UNSIGNED_BYTE;
         break;
+    case GL_RGB16F:
     case GL_RGB32F:
         m_DataFormat = GL_RGB;
         m_DataType = GL_FLOAT;

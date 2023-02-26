@@ -8,9 +8,9 @@ layout(location = 3) in vec3 vertexTexCoords;
 
 out vec3 fragPosition;
 flat out vec3 flatNormal;
+flat out vec3 flatColor;
 out vec2 fragTexCoordsXY;
 flat out float flatTexCoordsZ;
-
 
 uniform mat4 view;
 uniform mat4 model;
@@ -24,6 +24,8 @@ void main()
     mat3 normalMatrix = transpose(inverse(mat3(view * model)));
     flatNormal = normalMatrix * vertexNormal;
 
+    flatColor = vertexColor;
+
     fragTexCoordsXY = vertexTexCoords.xy;
     flatTexCoordsZ = vertexTexCoords.z;
     gl_Position = MVP * vec4(vertexPosition, 1.0);
@@ -34,6 +36,7 @@ void main()
 
 in vec3 fragPosition;
 flat in vec3 flatNormal;
+flat in vec3 flatColor;
 in vec2 fragTexCoordsXY;
 flat in float flatTexCoordsZ;
 
@@ -46,7 +49,24 @@ uniform sampler2DArray textureSlot;
 
 void main()
 {
-    gColor = texture(textureSlot, vec3(fragTexCoordsXY, flatTexCoordsZ));
+    vec3 textureCoords = vec3(fragTexCoordsXY, flatTexCoordsZ);
+
+
+    if (flatTexCoordsZ > 1.5 && flatTexCoordsZ < 2.5)
+    {
+        vec4 overlay;
+        overlay = texture(textureSlot, vec3(textureCoords.xy, 4.0));
+        gColor = overlay.a == 0.0 ? vec4(texture(textureSlot, textureCoords)) : vec4(flatColor, 1.0) * overlay;
+    }
+    else if (flatTexCoordsZ > 2.5 && flatTexCoordsZ < 3.5)
+    {
+        gColor = vec4(flatColor, 1.0) * texture(textureSlot, textureCoords);
+    }
+    else
+    {
+        gColor = texture(textureSlot, textureCoords);
+    }
+    
     gNormal = flatNormal;
     gPosition = fragPosition;
 }
