@@ -10,15 +10,19 @@
 
 Game::Game()
     : running(true), m_TextureArray(GL_RGBA), grassOffset(0), offset(0), fullscreen(false), m_Font("res/arial.ttf", 48),
-    m_FpsCounter(std::make_shared<Font>(m_Font)), debug_fps(true), mouseVisible(true), m_Occlusion(true), m_Instance(&Application::Get()), allocated(1024), allocator(1024*1000*1000) /*1024M*/
+    m_FpsCounter(std::make_shared<Font>(m_Font)), debug_fps(true), mouseVisible(true), m_Occlusion(true), m_Instance(&Application::Get()), allocated(1024), allocator(1024*1000*1000), m_kernelSize(64), /*1024M*/
+    m_LightPos(10.0, 100.0, 70.0)
 {
     m_FrameBuffer.Unbind();
 
     m_FrameBuffer.AddAttachment(GL_COLOR_ATTACHMENT0, GL_RGBA); // albedo
-    m_FrameBuffer.AddAttachment(GL_COLOR_ATTACHMENT1, GL_RGBA16F); // normal
+    m_FrameBuffer.AddAttachment(GL_COLOR_ATTACHMENT1, GL_RGBA); // normal
     m_FrameBuffer.AddAttachment(GL_COLOR_ATTACHMENT2, GL_RGB16F); // position
     m_FrameBuffer.AddAttachment(GL_DEPTH_ATTACHMENT, GL_DEPTH_COMPONENT); // depth
     m_FrameBuffer.CheckFrameBuffer();
+
+    m_ShadowBuffer.AddAttachment(GL_DEPTH_ATTACHMENT, GL_DEPTH_COMPONENT);
+    GLCall(glDrawBuffer(GL_NONE));
 
     m_SSAOFrameBuffer.AddAttachment(GL_COLOR_ATTACHMENT0, GL_RED);
     m_SSAOFrameBuffer.CheckFrameBuffer();
@@ -33,7 +37,7 @@ Game::Game()
     std::uniform_real_distribution<GLfloat> randomFloats(0.0, 1.0);
     std::default_random_engine generator;
 
-    for (int i=0; i<64; i++)
+    for (int i=0; i<32; i++)
     {
         glm::vec3 sample(
             randomFloats(generator) * 2.0 - 1.0,
@@ -43,7 +47,7 @@ Game::Game()
         sample = glm::normalize(sample);
         sample *= randomFloats(generator);
 
-        float scale = float(i) / 64.0;
+        float scale = float(i) / 32.0;
         sample *= std::lerp(0.1f, 1.0f, scale * scale);
         samples.push_back(sample);
 
@@ -93,9 +97,9 @@ Game::Game()
         int model;
     };
 
-    for (int x=-1; x<=1; x++)
+    for (int x=-2; x<=2; x++)
     {
-        for (int z=-1; z<=1; z++)
+        for (int z=-2; z<=2; z++)
         {
             m_World.GenerateChunk({x,z});
         }
@@ -450,14 +454,6 @@ void Game::Draw()
 
     m_VertexArray.Bind();
 
-    // std::shared_ptr<Shader> GrassShader = m_ShaderLibrary.Get("GrassShader");
-    // GrassShader->Bind();
-    // GrassShader->SetUniformMat4fv("model", glm::mat4(1.0f));
-    // GrassShader->SetUniformMat4fv("view", m_Camera.getView());
-    // GrassShader->SetUniformMat4fv("MVP", m_Camera.getMVP());
-    // GrassShader->SetUniform1i("textureSlot", 1);
-    // GLCall(glDrawArrays(GL_TRIANGLES, grassOffset/(12*sizeof(float)), (offset-grassOffset)/(12*sizeof(float))));
-
     std::shared_ptr<Shader> CubeShader = m_ShaderLibrary.Get("CubeShader");
     CubeShader->Bind();
     CubeShader->SetUniformMat4fv("model", glm::mat4(1.0f));
@@ -466,6 +462,19 @@ void Game::Draw()
     CubeShader->SetUniform1i("textureSlot", 1);
     GLCall(glDrawArrays(GL_TRIANGLES, 0, offset/12*sizeof(float)));
 
+    m_ShadowBuffer.Bind();
+    glClear(GL_DEPTH_BUFFER_BIT);
+
+    std::shared_ptr<Shader> DepthShader = m_ShaderLibrary.Get("DepthShader");
+    DepthShader->Bind();
+    glm::mat4 lightProjection = glm::perspective(glm::radians(45.0f), (float)1920/(float)1080, 0.1f, 1000.0f);
+    glm::mat4 lightView = glm::lookAt(m_LightPos, glm::vec3(0.0,64.0,0.0), glm::vec3(0.0,1.0,0.0));
+    DepthShader->SetUniformMat4fv("LightSpaceMatrix", lightProjection * lightView);
+    GLCall(glDrawArrays(GL_TRIANGLES, 0, offset/12*sizeof(float)));
+
+    // glFrontFace(GL_CW);
+    m_ShadowBuffer.BindTexture(GL_TEXTURE5, GL_DEPTH_ATTACHMENT);
+    // glFrontFace(GL_CCW);
 
     GLCall(glDisable(GL_DEPTH_TEST));
 
@@ -478,7 +487,7 @@ void Game::Draw()
 
     if(m_Occlusion)
     {
-        glActiveTexture(GL_TEXTURE5);
+        glActiveTexture(GL_TEXTURE4);
         GLCall(glBindTexture(GL_TEXTURE_2D, texNoise));
 
         std::shared_ptr<Shader> SSAOShader = m_ShaderLibrary.Get("SSAOShader");
@@ -487,7 +496,7 @@ void Game::Draw()
         SSAOShader->SetUniform1i("gPosition", 2);
         SSAOShader->SetUniform1i("texNoise", 5);
         SSAOShader->SetUniformMat4fv("Projection", glm::perspective(glm::radians(45.0f), (float)m_Instance->m_Width / (float)m_Instance->m_Height, 0.1f, 100.0f));
-        for (int i=0; i<64; i++)
+        for (int i=0; i<32; i++)
         {
             SSAOShader->SetUniform3f("samples[" + std::to_string(i) + "]", samples[i]);
         }
@@ -514,10 +523,16 @@ void Game::Draw()
     ScreenShader->SetUniform1i("gPosition", 2);
     // ScreenShader->SetUniform1i("gDepth", 3);
     ScreenShader->SetUniform1i("ssaoTexture", 4);
-    glm::vec3 lightPos(10.0, 100.0, 70.0);
-    glm::vec3 lightPosView = glm::vec3(m_Camera.getView() * glm::vec4(lightPos, 1.0));
+    // ScreenShader->SetUniform1i("shadowTexture", 5);
+    glm::vec3 lightPosView = glm::vec3(m_Camera.getView() * glm::vec4(m_LightPos, 1.0));
+    
+    // ScreenShader->SetUniformMat4fv("lightPerspective", lightView * lightProjection);
     ScreenShader->SetUniform3f("lightPos", lightPosView);
     ScreenShader->SetUniform1i("occlusion", m_Occlusion);
+    
+    // std::shared_ptr<Shader> BasicScreenShader = m_ShaderLibrary.Get("BasicScreenShader");
+    // BasicScreenShader->Bind();
+    // BasicScreenShader->SetUniform1i("buffer", 5);
 
     GLCall(glDrawElements(GL_TRIANGLES, m_ScreenQuad.IndexCount(), GL_UNSIGNED_INT, nullptr));
 

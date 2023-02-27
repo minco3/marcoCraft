@@ -23,6 +23,8 @@ void main()
     
     mat3 normalMatrix = transpose(inverse(mat3(view * model)));
     flatNormal = normalMatrix * vertexNormal;
+    flatNormal /= 2;
+    flatNormal += 0.5;
 
     flatColor = vertexColor;
 

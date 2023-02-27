@@ -22,9 +22,9 @@ uniform sampler2D gNormal;
 uniform sampler2D gPosition;
 uniform sampler2D texNoise;
 
-uniform vec3 samples[64];
+uniform vec3 samples[32];
 
-int kernelSize = 64;
+int kernelSize = 32;
 float radius = 0.5;
 float bias = 0.025;
 
@@ -32,21 +32,11 @@ const vec2 noiseScale = vec2(1920.0/4.0, 1080.0/4.0);
 
 uniform mat4 Projection;
 
-float near = 0.1f;
-float far = 100.0f;
-
-float linearizeDepth(float depth)
-{
-    return (2.0 * near * far) / (far + near - (depth * 2.0 - 1.0) * (far - near));
-}
-
-vec4 fogColor = vec4(1.0, 1.0, 1.0, 1.0);
-
 void main()
 {
 
     vec3 fragPos = texture(gPosition, fragTexCoords).xyz;
-    vec3 normal = normalize(texture(gNormal, fragTexCoords).rgb);
+    vec3 normal = (texture(gNormal, fragTexCoords).rgb * 2) - 1;
     vec3 randomVec = texture(texNoise, fragTexCoords * noiseScale).xyz;
 
     vec3 tangent = normalize(randomVec - normal * dot(randomVec, normal));

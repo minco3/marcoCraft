@@ -24,12 +24,14 @@ uniform sampler2D gNormal;
 uniform sampler2D gPosition;
 uniform sampler2D gDepth;
 uniform sampler2D ssaoTexture;
+uniform sampler2D shadowTexture;
 
+uniform mat4 lightPerspective;
 uniform vec3 lightPos;
 uniform bool occlusion;
 
 float near = 0.1f;
-float far = 100.0f;
+float far = 1000.0f;
 
 float linearizeDepth(float depth)
 {
@@ -45,11 +47,18 @@ vec3 lightColor = vec3(1.0, 1.0, 1.0);
 void main()
 {
     vec3 FragPos = texture(gPosition, texCoords).rgb;
-    vec3 Normal = texture(gNormal, texCoords).rgb;
+    vec3 Normal = (texture(gNormal, texCoords).rgb * 2) - 1;
     vec3 Diffuse = texture(gAlbedo, texCoords).rgb;
-    float AmbientOcclusion = texture(ssaoTexture, texCoords).r;
+    
+    vec4 ShadowFragPos = vec4(FragPos, 1.0) * lightPerspective;
+    ShadowFragPos.xyz /= ShadowFragPos.w;
+    ShadowFragPos.xyz = ShadowFragPos.xyz * 0.5 + 0.5;
 
-    vec3 lighting = Diffuse * 0.5 * (occlusion ? pow(AmbientOcclusion,2) : 1.0); //ambient
+    float depth = texture(shadowTexture, ShadowFragPos.xy).r;
+
+    float AmbientOcclusion = pow(texture(ssaoTexture, texCoords).r, 2);
+
+    vec3 lighting = Diffuse * 0.5 * (occlusion ? AmbientOcclusion : 1.0); //ambient
 
     vec3 lightDir = normalize(lightPos - FragPos);
     vec3 diffuse = max(dot(Normal, lightDir), 0.0) * Diffuse * lightColor;
@@ -86,5 +95,9 @@ void main()
     // float smoothDepth = smoothstep(0.0, 1.0, linearDepth);
     // fragColor = mix(vec4(lighting, 1.0), fogColor, smoothDepth);
 
+    if (depth < 1)
+    {
+        // lighting /= depth*2;
+    }
     fragColor = vec4(lighting, 1.0);
 }

@@ -46,7 +46,7 @@ void Camera::SetScreenSize(float width, float height)
 
 void Camera::UpdateProjection()
 {
-    m_Projection = glm::perspective(glm::radians(45.0f), (float)m_ScreenWidth / (float)m_ScreenHeight, 0.1f, 100.0f);
+    m_Projection = glm::perspective(glm::radians(45.0f), (float)m_ScreenWidth / (float)m_ScreenHeight, 0.1f, 1000.0f);
 }
 
 glm::mat4 Camera::getView()
