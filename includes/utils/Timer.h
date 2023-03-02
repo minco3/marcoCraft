@@ -9,7 +9,7 @@ public:
 
     Timer(std::string name);
 
-    void Stop();
+    double Stop(bool log = true);
 
 private:
 

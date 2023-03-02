@@ -43,11 +43,23 @@ void Text::RenderText()
     float x = m_Position.x;
     const glm::vec2& atlasSize = m_Font->getSize();
 
+    const int lineHeight = 50;
+
+    unsigned linecount = 0;
+
     for (char c : m_String) {
+        
+        if (c == '\n')
+        {
+            linecount++;
+            x = m_Position.x;
+            continue;
+        }
+
         const Character& ch = m_Font->getCharacter(c);
 
         float xpos = x + ch.Bearing.x;
-        float ypos = m_Position.y - (ch.Size.y - ch.Bearing.y);
+        float ypos = m_Position.y - (ch.Size.y - ch.Bearing.y) - (linecount * lineHeight);
 
         float w = ch.Size.x * m_Scale;
         float h = ch.Size.y * m_Scale;

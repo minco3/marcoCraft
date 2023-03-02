@@ -539,14 +539,17 @@ void Game::Draw()
     if (debug_fps)
     {
         using namespace std::chrono_literals;
-        if (std::chrono::high_resolution_clock::now() > p1+500ms) {
-            std::stringstream fpsCount;
+        if (std::chrono::high_resolution_clock::now() > p1+50ms) {
+            std::stringstream fpsCount, frameTime;
             p1 = std::chrono::high_resolution_clock::now();
             std::chrono::duration<double> duration = std::chrono::duration_cast<std::chrono::duration<double>> (p1-p2);
             fpsCount.clear();
             fpsCount.str(std::string());
             fpsCount << std::fixed << std::setprecision(0) << 1/duration.count();
-            m_FpsCounter.SetString(fpsCount.str() + " fps");
+            frameTime.clear();
+            frameTime.str(std::string());
+            frameTime << std::fixed << std::setprecision(2) << duration.count() * 1000;
+            m_FpsCounter.SetString(fpsCount.str() + "fps\nlast frame time: " + frameTime.str() + "ms");
         }
         m_FpsCounter.RenderText();
     }
