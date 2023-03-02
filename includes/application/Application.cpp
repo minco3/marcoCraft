@@ -3,7 +3,7 @@
 Application* Application::s_Instance = nullptr;
 
 Application::Application()
-    : m_Width(1920), m_Height(1080)
+    : m_Width(1280), m_Height(720)
 {
     s_Instance = this;
     // needs to be simplified

@@ -28,7 +28,7 @@ int kernelSize = 32;
 float radius = 0.5;
 float bias = 0.025;
 
-const vec2 noiseScale = vec2(1920.0/4.0, 1080.0/4.0);
+vec2 noiseScale = textureSize(gNormal, 0) / 4.0;
 
 uniform mat4 Projection;
 
