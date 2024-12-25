@@ -70,5 +70,5 @@ private:
     int allocated;
     int m_kernelSize;
     Alloc allocator;
-    void* buffer;
+    uint8_t* buffer;
 };

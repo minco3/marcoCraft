@@ -27,8 +27,8 @@ class Camera {
         bool sprint = false;
         double sensitivity = 500/2.5;
 
-    private:
         glm::vec3 m_cameraPos;
+    private:
         glm::vec3 m_cameraFront;
         glm::vec3 m_cameraUp;
         glm::mat4 m_Projection;

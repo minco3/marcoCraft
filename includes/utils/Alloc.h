@@ -1,5 +1,7 @@
 #pragma once
 
+#include <stdint.h>
+
 struct Entry
 {
     Entry(Entry* _prev = nullptr, Entry* _next = nullptr, unsigned long long _size = 0)
@@ -9,7 +11,7 @@ struct Entry
     Entry* next;
     unsigned long long size;
     bool free;
-    void* data;
+    uint8_t* data;
 };
 
 class Alloc
@@ -18,8 +20,8 @@ public:
     Alloc(unsigned long long size);
     ~Alloc();
 
-    void* alloc(unsigned long long size);
-    void free(void* ptr);
+    uint8_t* alloc(unsigned long long size);
+    void free(uint8_t* ptr);
 
 private:
 

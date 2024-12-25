@@ -4,7 +4,7 @@
 Alloc::Alloc(unsigned long long size)
     : root(new Entry(nullptr, nullptr, size)), spaceFree(size), spaceUsed(0)
 {
-    root->data = new char[size];
+    root->data = new uint8_t[size];
 }
 
 Alloc::~Alloc()
@@ -19,7 +19,7 @@ Alloc::~Alloc()
     }
 }
 
-void* Alloc::alloc(unsigned long long size)
+uint8_t* Alloc::alloc(unsigned long long size)
 {
     Entry* walker = root;
     while (walker)
@@ -50,7 +50,7 @@ void* Alloc::alloc(unsigned long long size)
     return walker->data;
 }
 
-void Alloc::free(void* ptr)
+void Alloc::free(uint8_t* ptr)
 {
     Entry* walker = root;
     while (walker)

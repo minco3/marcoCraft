@@ -9,9 +9,9 @@
 #include "external/stb_image/stb_image.h"
 
 Game::Game()
-    : running(true), m_TextureArray(GL_RGBA), grassOffset(0), offset(0), fullscreen(false), m_Font("res/arial.ttf", 48),
+    : running(true), m_TextureArray(GL_RGBA), grassOffset(0), offset(0), fullscreen(false), m_Font("/Users/marcomiralles/src/marcoCraft/res/arial.ttf", 48),
     m_FpsCounter(std::make_shared<Font>(m_Font)), debug_fps(true), mouseVisible(true), m_Occlusion(true), m_Instance(&Application::Get()), allocated(1024), allocator(1024*1000*1000), m_kernelSize(64), /*1024M*/
-    m_LightPos(10.0, 100.0, 70.0)
+    m_LightPos(-70.0, 80.0, 70.0)
 {
     m_FrameBuffer.Unbind();
 
@@ -23,6 +23,7 @@ Game::Game()
 
     m_ShadowBuffer.AddAttachment(GL_DEPTH_ATTACHMENT, GL_DEPTH_COMPONENT);
     GLCall(glDrawBuffer(GL_NONE));
+    m_ShadowBuffer.CheckFrameBuffer();
 
     m_SSAOFrameBuffer.AddAttachment(GL_COLOR_ATTACHMENT0, GL_RED);
     m_SSAOFrameBuffer.CheckFrameBuffer();
@@ -177,14 +178,14 @@ Game::Game()
         {1, stoneBlock}, {2, dirtBlock}, {3, grassBlock}, {4, glassBlock}
     };
 
-    glEnable(GL_DEPTH_TEST);
-    glEnable(GL_CULL_FACE);
-    glDepthFunc(GL_LESS);
-    glEnable(GL_BLEND);
+    GLCall(glEnable(GL_DEPTH_TEST));
+    GLCall(glEnable(GL_CULL_FACE));
+    GLCall(glDepthFunc(GL_LESS));
+    GLCall(glEnable(GL_BLEND));
 
-    std::filesystem::path rootdir = std::filesystem::current_path();
+    const std::filesystem::path rootdir = "/Users/marcomiralles/src/marcoCraft";
     
-    std::filesystem::path shaderdir = std::filesystem::current_path() += "/res/shaders";
+    const std::filesystem::path shaderdir = rootdir / "res/shaders";
 
     for (auto const& entry : std::filesystem::directory_iterator(shaderdir))
     {
@@ -192,7 +193,7 @@ Game::Game()
         m_ShaderLibrary.Load(entry.path().string());
     }
     
-    std::filesystem::path texturedir = std::filesystem::current_path() += "/res/texture";
+    const std::filesystem::path texturedir = rootdir / "res/texture";
     std::filesystem::directory_iterator texturedir_iter (texturedir);
 
     int textureCount = std::distance(texturedir_iter, {}); // count the number of textures to load
@@ -206,10 +207,11 @@ Game::Game()
         m_TextureArray.SetData(glm::vec2(0, 0), textureID.at(entry.path().stem().string()), glm::vec2(16,16), data);
     }
 
-    glClearColor(0.0f, 0.0f, 0.4f, 0.0f);
+    GLCall(glClearColor(0.0f, 0.0f, 0.4f, 0.0f));
 
     m_Camera.SetScreenSize(Application::Get().m_Width, Application::Get().m_Height);
-    m_Camera.setPosition(glm::vec3(0, 65, 10));
+    m_Camera.setPosition(m_LightPos);
+    // m_Camera.setPosition(glm::vec3(0, 65, 10));
 
     std::chrono::high_resolution_clock::time_point p1, p2;
     std::chrono::duration<double> duration;
@@ -460,30 +462,27 @@ void Game::Draw()
     CubeShader->SetUniformMat4fv("view", m_Camera.getView());
     CubeShader->SetUniformMat4fv("MVP", m_Camera.getMVP());
     CubeShader->SetUniform1i("textureSlot", 1);
-    GLCall(glDrawArrays(GL_TRIANGLES, 0, offset/12*sizeof(float)));
+    GLCall(glDrawArrays(GL_TRIANGLES, 0, offset/(12*sizeof(float))));
 
     m_ShadowBuffer.Bind();
     glClear(GL_DEPTH_BUFFER_BIT);
 
     std::shared_ptr<Shader> DepthShader = m_ShaderLibrary.Get("DepthShader");
     DepthShader->Bind();
-    glm::mat4 lightProjection = glm::perspective(glm::radians(45.0f), (float)1920/(float)1080, 0.1f, 1000.0f);
-    glm::mat4 lightView = glm::lookAt(m_LightPos, glm::vec3(0.0,64.0,0.0), glm::vec3(0.0,1.0,0.0));
+    glm::mat4 lightProjection = glm::perspective(glm::radians(90.0f), float(Application::Get().m_Width)/Application::Get().m_Height, 0.1f, 1000.0f);
+    glm::mat4 lightView = glm::lookAt(m_LightPos, glm::vec3(0, 65, 10), glm::vec3(0.0,1.0,0.0));
     DepthShader->SetUniformMat4fv("LightSpaceMatrix", lightProjection * lightView);
-    GLCall(glDrawArrays(GL_TRIANGLES, 0, offset/12*sizeof(float)));
+    GLCall(glDrawArrays(GL_TRIANGLES, 0, offset/(12*sizeof(float))));
 
-    // glFrontFace(GL_CW);
-    m_ShadowBuffer.BindTexture(GL_TEXTURE5, GL_DEPTH_ATTACHMENT);
-    // glFrontFace(GL_CCW);
-
-    GLCall(glDisable(GL_DEPTH_TEST));
+    GLCall(glDisable(GL_DEPTH_TEST)); // start deferred renderer
 
     m_ScreenQuad.Bind();
     
     m_FrameBuffer.BindTexture(GL_TEXTURE0, GL_COLOR_ATTACHMENT0);
     m_FrameBuffer.BindTexture(GL_TEXTURE1, GL_COLOR_ATTACHMENT1);
     m_FrameBuffer.BindTexture(GL_TEXTURE2, GL_COLOR_ATTACHMENT2);
-    m_FrameBuffer.BindTexture(GL_TEXTURE4, GL_DEPTH_ATTACHMENT);
+    m_FrameBuffer.BindTexture(GL_TEXTURE3, GL_DEPTH_ATTACHMENT);
+    m_ShadowBuffer.BindTexture(GL_TEXTURE5, GL_DEPTH_ATTACHMENT);
 
     if(m_Occlusion)
     {
@@ -495,7 +494,7 @@ void Game::Draw()
         SSAOShader->SetUniform1i("gNormal", 1);
         SSAOShader->SetUniform1i("gPosition", 2);
         SSAOShader->SetUniform1i("texNoise", 5);
-        SSAOShader->SetUniformMat4fv("Projection", glm::perspective(glm::radians(45.0f), (float)m_Instance->m_Width / (float)m_Instance->m_Height, 0.1f, 100.0f));
+        SSAOShader->SetUniformMat4fv("Projection", glm::perspective(glm::radians(90.0f), (float)m_Instance->m_Width / (float)m_Instance->m_Height, 0.1f, 100.0f));
         for (int i=0; i<32; i++)
         {
             SSAOShader->SetUniform3f("samples[" + std::to_string(i) + "]", samples[i]);
@@ -521,18 +520,19 @@ void Game::Draw()
     ScreenShader->SetUniform1i("gAlbedo", 0);
     ScreenShader->SetUniform1i("gNormal", 1);
     ScreenShader->SetUniform1i("gPosition", 2);
-    // ScreenShader->SetUniform1i("gDepth", 3);
+    ScreenShader->SetUniform1i("gDepth", 3);
     ScreenShader->SetUniform1i("ssaoTexture", 4);
-    // ScreenShader->SetUniform1i("shadowTexture", 5);
+    ScreenShader->SetUniform1i("shadowTexture", 5);
     glm::vec3 lightPosView = glm::vec3(m_Camera.getView() * glm::vec4(m_LightPos, 1.0));
     
-    // ScreenShader->SetUniformMat4fv("lightPerspective", lightView * lightProjection);
+    ScreenShader->SetUniformMat4fv("inverseMVP", glm::inverse(m_Camera.getMVP()));
+    ScreenShader->SetUniformMat4fv("lightMVP", lightProjection * lightView);
     ScreenShader->SetUniform3f("lightPos", lightPosView);
     ScreenShader->SetUniform1i("occlusion", m_Occlusion);
     
     // std::shared_ptr<Shader> BasicScreenShader = m_ShaderLibrary.Get("BasicScreenShader");
     // BasicScreenShader->Bind();
-    // BasicScreenShader->SetUniform1i("buffer", 5);
+    // BasicScreenShader->SetUniform1i("buffer", 3);
 
     GLCall(glDrawElements(GL_TRIANGLES, m_ScreenQuad.IndexCount(), GL_UNSIGNED_INT, nullptr));
 

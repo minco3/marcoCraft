@@ -26,7 +26,8 @@ uniform sampler2D gDepth;
 uniform sampler2D ssaoTexture;
 uniform sampler2D shadowTexture;
 
-uniform mat4 lightPerspective;
+uniform mat4 lightMVP;
+uniform mat4 inverseMVP;
 uniform vec3 lightPos;
 uniform bool occlusion;
 
@@ -38,6 +39,11 @@ float linearizeDepth(float depth)
     return (2.0 * near * far) / (far + near - (depth * 2.0 - 1.0) * (far - near));
 }
 
+float normalDepth(float depth)
+{
+    return (linearizeDepth(depth) - near) / (far - near);
+}
+
 vec4 fogColor = vec4(1.0, 1.0, 1.0, 1.0);
 
 const float offset = 1.0 / 600.0;
@@ -47,14 +53,24 @@ vec3 lightColor = vec3(1.0, 1.0, 1.0);
 void main()
 {
     vec3 FragPos = texture(gPosition, texCoords).rgb;
-    vec3 Normal = (texture(gNormal, texCoords).rgb * 2) - 1;
+    vec3 Normal = texture(gNormal, texCoords).rgb * 2.0 - 1.0;
     vec3 Diffuse = texture(gAlbedo, texCoords).rgb;
-    
-    vec4 ShadowFragPos = vec4(FragPos, 1.0) * lightPerspective;
-    ShadowFragPos.xyz /= ShadowFragPos.w;
-    ShadowFragPos.xyz = ShadowFragPos.xyz * 0.5 + 0.5;
+    float Depth = texture(gDepth, texCoords).r;
 
-    float depth = texture(shadowTexture, ShadowFragPos.xy).r;
+    vec4 clipSpacePos = vec4(
+        texCoords * 2.0 - 1.0, // Convert from [0, 1] to NDC [-1, 1]
+        Depth * 2.0 - 1.0,        // Depth in NDC [-1, 1]
+        1.0
+    );
+
+    vec4 worldSpacePos = inverseMVP * clipSpacePos;
+    worldSpacePos /= worldSpacePos.w;
+
+    vec4 shadowFragPos = lightMVP * worldSpacePos;
+    shadowFragPos.xyz /= shadowFragPos.w;
+    shadowFragPos.xyz = (shadowFragPos.xyz + 1.0)/ 2.0;
+
+    float shadowDepth = texture(shadowTexture, shadowFragPos.xy).r;
 
     float AmbientOcclusion = pow(texture(ssaoTexture, texCoords).r, 2);
 
@@ -62,9 +78,6 @@ void main()
 
     vec3 lightDir = normalize(lightPos - FragPos);
     vec3 diffuse = max(dot(Normal, lightDir), 0.0) * Diffuse * lightColor;
-
-    lighting += diffuse;
-
 
     // float kernel[9] = float[](
     //     -1, -1, -1,
@@ -89,15 +102,11 @@ void main()
     // col += kernel[8] * texture(gAlbedo, texCoords + vec2(offset,  -offset)); // bottom right
     // fragColor = col;
 
-    // vec4 depthValue = texture(gDepth, texCoords);
-    // float depth = depthValue.r;
-    // float linearDepth = (linearizeDepth(depth) - near) / (far - near);
-    // float smoothDepth = smoothstep(0.0, 1.0, linearDepth);
-    // fragColor = mix(vec4(lighting, 1.0), fogColor, smoothDepth);
+    lighting += diffuse;
 
-    if (depth < 1)
+    if (shadowDepth < shadowFragPos.z - 0.00001)
     {
-        // lighting /= depth*2;
+        lighting /= 2.0;
     }
     fragColor = vec4(lighting, 1.0);
 }

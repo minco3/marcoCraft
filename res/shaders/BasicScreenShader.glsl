@@ -21,7 +21,20 @@ out vec4 fragColor;
 
 uniform sampler2D buffer;
 
+float near = 0.1f;
+float far = 1000.0f;
+
+float linearizeDepth(float depth)
+{
+    return (2.0 * near * far) / (far + near - (depth * 2.0 - 1.0) * (far - near));
+}
+
 void main()
 {
-    fragColor = vec4(texture(buffer, texCoords).rgb, 1.0);
+    float depth = texture(buffer, texCoords).r;
+    float linearDepth = (linearizeDepth(depth) - near) / (far - near);
+    fragColor = vec4(vec3(
+       min(linearDepth*5, 1)), 1.0);
+
+    fragColor = vec4(texture(buffer, texCoords).b);
 }

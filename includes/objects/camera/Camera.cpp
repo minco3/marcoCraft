@@ -20,7 +20,7 @@ void Camera::move(float deltaTime)
 
     if (sprint) cameraVelocity *= glm::vec3(4.0f, 4.0f, 4.0f);
 
-    m_cameraPos += cameraVelocity*glm::vec3(deltaTime/1000,deltaTime/1000,deltaTime/1000);
+    m_cameraPos += cameraVelocity*glm::vec3(deltaTime/10);
 }
 
 void Camera::look(Sint32 xrel, Sint32 yrel)
@@ -46,7 +46,7 @@ void Camera::SetScreenSize(float width, float height)
 
 void Camera::UpdateProjection()
 {
-    m_Projection = glm::perspective(glm::radians(45.0f), (float)m_ScreenWidth / (float)m_ScreenHeight, 0.1f, 1000.0f);
+    m_Projection = glm::perspective(glm::radians(90.0f), (float)m_ScreenWidth / (float)m_ScreenHeight, 0.1f, 1000.0f);
 }
 
 glm::mat4 Camera::getView()
