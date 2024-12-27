@@ -10,40 +10,42 @@ class Quad;
 class Font;
 class Text;
 
-#include <vector>
 #include <chrono>
+#include <vector>
 
+#include "../objects/camera/Camera.h"
+#include "../objects/text/Text.h"
+#include "../opengl/FrameBuffer.h"
+#include "../opengl/Shader.h"
+#include "../opengl/TextureArray.h"
+#include "../opengl/VertexArray.h"
 #include "World.h"
 #include "includes/utils/Alloc.h"
 
 #include <glm/common.hpp>
 
-class Game {
+class Game
+{
 public:
+    Game();
 
-Game();
+    void Event();
+    void Update();
+    void Draw();
 
-void Event();
-void Update();
-void Draw();
-
-bool isRunning() {return running;}
+    bool isRunning() { return running; }
 
 private:
     bool running;
-    
+
     Application* m_Instance;
-    
+
     Camera m_Camera;
 
-    VertexArray m_VertexArray;
     TextureArray m_TextureArray;
     ShaderLibrary m_ShaderLibrary;
 
     World m_World;
-
-    int grassOffset;
-    int offset;
 
     std::chrono::high_resolution_clock::time_point p1, p2;
 

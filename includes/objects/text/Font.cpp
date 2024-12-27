@@ -1,4 +1,4 @@
-#include "font.h"
+#include "Font.h"
 
 Font::Font(const std::string& path, int size)
 {
