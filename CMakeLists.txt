@@ -15,13 +15,10 @@ file(GLOB_RECURSE EXTERNAL_FILES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} CONFIGURE_
 set(WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
 
 add_executable(minecraft main.cpp ${SOURCE_FILES} ${EXTERNAL_FILES})
-find_package(OpenGL REQUIRED)
-find_package(GTest REQUIRED)
-find_package(GLEW REQUIRED)
 find_package(Freetype REQUIRED)
-find_package(freeglut REQUIRED)
 find_package(SDL2 REQUIRED)
 find_package(SDL2_image REQUIRED)
+find_package(GLEW REQUIRED)
 find_package(glm REQUIRED)
 find_package(frozen REQUIRED)
 
