@@ -2,7 +2,6 @@
 
 #include "external/SimplexNoise/SimplexNoise.h"
 #include <glm/glm.hpp>
-#include <map>
 #include <vector>
 
 #include "Chunk.h"

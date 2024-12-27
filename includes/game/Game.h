@@ -13,12 +13,12 @@ class Text;
 #include <chrono>
 #include <vector>
 
-#include "../objects/camera/Camera.h"
-#include "../objects/text/Text.h"
-#include "../opengl/FrameBuffer.h"
-#include "../opengl/Shader.h"
-#include "../opengl/TextureArray.h"
-#include "../opengl/VertexArray.h"
+#include "includes/objects/camera/Camera.h"
+#include "includes/objects/text/Text.h"
+#include "includes/opengl/FrameBuffer.h"
+#include "includes/opengl/Shader.h"
+#include "includes/opengl/TextureArray.h"
+#include "includes/opengl/VertexArray.h"
 #include "World.h"
 #include "includes/utils/Alloc.h"
 

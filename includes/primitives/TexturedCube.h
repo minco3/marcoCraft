@@ -11,7 +11,6 @@ struct Model {
     int right;
     int top;
     int bottom;
-    
 };
 
 class Cube

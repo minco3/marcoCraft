@@ -1,7 +1,8 @@
 #include "World.h"
-#include "../primitives/TexturedCube.h"
-
+#include "includes/primitives/TexturedCube.h"
 #include "external/SimplexNoise/SimplexNoise.h"
+#include <frozen/unordered_map.h>
+
 
 void World::GenerateChunk(glm::ivec2 pos)
 {
@@ -114,12 +115,12 @@ void World::InvisibleCulling(uint8_t* buffer)
         std::make_shared<VertexBuffer>(64 * 64 * 64 * 9 * 36 * sizeof(float));
     vb->Bind();
 
-    Model stoneBlock = {0, 0, 0, 0, 0, 0};
-    Model dirtBlock = {1, 1, 1, 1, 1, 1};
-    Model grassBlock = {2, 2, 2, 2, 3, 1};
-    Model glassBlock = {5, 5, 5, 5, 5, 5};
+    constexpr Model stoneBlock = {0, 0, 0, 0, 0, 0};
+    constexpr Model dirtBlock = {1, 1, 1, 1, 1, 1};
+    constexpr Model grassBlock = {2, 2, 2, 2, 3, 1};
+    constexpr Model glassBlock = {5, 5, 5, 5, 5, 5};
 
-    const std::map<int, Model> models = {
+    constexpr frozen::unordered_map<int, Model, 4> models = {
         {1, stoneBlock}, {2, dirtBlock}, {3, grassBlock}, {4, glassBlock}};
 
     int grassOffset = 0;

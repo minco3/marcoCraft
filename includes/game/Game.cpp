@@ -4,6 +4,7 @@
 #include <cmath>
 #include <filesystem>
 #include <random>
+#include <unordered_map>
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "external/stb_image/stb_image.h"
@@ -93,7 +94,7 @@ Game::Game()
         m_ShaderLibrary.Load(entry.path().string());
     }
 
-    std::map<std::string, int> textureID{
+    std::unordered_map<std::string, int> textureID{
         {"stone", 0},
         {"dirt", 1},
         {"grass_block_side", 2},
