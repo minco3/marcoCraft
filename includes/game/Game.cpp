@@ -11,7 +11,7 @@
 
 Game::Game()
     : running(true), m_TextureArray(GL_RGBA), fullscreen(false),
-      m_Font("/Users/marcomiralles/src/marcoCraft/res/arial.ttf", 48),
+      m_Font(std::filesystem::path(ASSET_DIR) / "arial.ttf", 48),
       m_FpsCounter(std::make_shared<Font>(m_Font)), debug_fps(true),
       mouseVisible(true), m_Occlusion(true), m_Instance(&Application::Get()),
       allocated(1024), allocator(1024 * 1000 * 1000), m_kernelSize(64) /*1024M*/
