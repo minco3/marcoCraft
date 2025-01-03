@@ -112,13 +112,17 @@ Game::Game()
     m_TextureArray.Resize(glm::ivec3(16, 16, textureCount));
     for (auto const& entry : std::filesystem::directory_iterator(texturedir))
     {
+        const std::string& textureName = entry.path().stem().string();
+        if (!textureID.contains(textureName))
+            continue;
+
         int x, y, bits;
-        std::cout << "loading texture " << entry.path().stem().string()
+        std::cout << "loading texture " << textureName
                   << std::endl;
         unsigned char* data =
             stbi_load(entry.path().string().c_str(), &x, &y, &bits, 4);
         m_TextureArray.SetData(
-            glm::vec2(0, 0), textureID.at(entry.path().stem().string()),
+            glm::vec2(0, 0), textureID.at(textureName),
             glm::vec2(16, 16), data);
     }
 
