@@ -101,7 +101,8 @@ Game::Game()
         {"grass_block_top", 3},
         {"grass_block_side_overlay", 4},
         {"glass", 5},
-        {"oak_leaves", 6}};
+        {"oak_leaves", 6},
+        {"sun", 7}};
 
     const std::filesystem::path texturedir = assetdir / "texture";
     std::filesystem::directory_iterator texturedir_iter(texturedir);
@@ -260,7 +261,8 @@ void Game::Update()
         std::chrono::duration_cast<std::chrono::milliseconds>(
             std::chrono::high_resolution_clock::now().time_since_epoch())
             .count();
-    double t = fmod(time, 1000000.0) / 10000.0 * 2 * M_PI;
+    // double t = fmod(time, 1000000.0) / 100000.0 * 2 * M_PI;
+    double t = 1;
     m_LightPos = glm::vec3(sin(t) * 70.0, 80.0, cos(t) * 70.0);
 }
 
@@ -270,7 +272,8 @@ void Game::Draw()
 
     m_FrameBuffer.BindBuffers();
 
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    GLCall(glClearColor(0.0f, 0.0f, 0.0f, 0.0f));
+    GLCall(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
 
     m_TextureArray.Bind();
 
@@ -308,6 +311,9 @@ void Game::Draw()
     m_FrameBuffer.BindTexture(GL_TEXTURE2, GL_COLOR_ATTACHMENT2);
     m_FrameBuffer.BindTexture(GL_TEXTURE3, GL_DEPTH_ATTACHMENT);
     m_ShadowBuffer.BindTexture(GL_TEXTURE5, GL_DEPTH_ATTACHMENT);
+
+    // GLCall(glClearColor(0.0f, 0.0f, 0.4f, 0.0f));
+    // GLCall(glClear(GL_COLOR_BUFFER_BIT));
 
     if (m_Occlusion)
     {
