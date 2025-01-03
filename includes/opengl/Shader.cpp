@@ -156,6 +156,7 @@ GLuint Shader::CompileShader()
             std::vector<char> ErrorMessage(InfoLogLength+1);
             GLCall(glGetShaderInfoLog(ShaderID, InfoLogLength, NULL, &ErrorMessage[0]));
             std::cout << &ErrorMessage[0] << '\n';
+            exit(1);
         }
     }
 
